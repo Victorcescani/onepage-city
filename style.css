@@ -134,15 +134,15 @@ body {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
 }
 .kpi {
-  background: #fff; border-radius: var(--radius); padding: 13px 14px;
+  background: #fff; border-radius: var(--radius); padding: 11px 13px;
   box-shadow: var(--shadow); border: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 4px; min-height: 76px; justify-content: center;
+  display: flex; flex-direction: column; gap: 3px; min-height: 72px; justify-content: center;
 }
 .kpi.big { background: var(--brand); color: #fff; border-color: var(--brand); }
 .kpi.big .k-label { color: rgba(255,255,255,0.78); }
 .kpi.big .k-val { color: #fff; font-size: 26px; }
 .kpi .k-label { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
-.kpi .k-val { font-size: 22px; font-weight: 800; color: var(--ink); }
+.kpi .k-val { font-size: 21px; font-weight: 800; color: var(--ink); }
 .kpi .k-compare {
   font-size: 11px; color: var(--muted); margin-top: 4px;
   padding-top: 4px; border-top: 1px dashed var(--border);
