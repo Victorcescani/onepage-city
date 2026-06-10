@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/proxy/elastic/profissionais", "destination": "/api/proxy/elastic_profissionais" },
     { "source": "/proxy/cnes", "destination": "/api/proxy/cnes" },
     { "source": "/proxy/ans", "destination": "/api/proxy/ans" },
     { "source": "/proxy/ans/multi", "destination": "/api/proxy/ans_multi" },
