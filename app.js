@@ -1144,30 +1144,46 @@ function renderGenderPie(scope, pyramid) {
 function renderPyramid(scope, pyramid) {
   const key = `${scope}-pyramid`;
   destroyChart(key);
-  // Ordem invertida (do mais velho no topo) p/ aparência clássica de pirâmide
+
   const groupsRev = [...AGE_GROUPS].reverse();
   const labels = groupsRev.map(a => a.label);
   const men = groupsRev.map(a => -(pyramid.men[a.id] || 0));
   const women = groupsRev.map(a => pyramid.women[a.id] || 0);
   const maxAbs = Math.max(...men.map(Math.abs), ...women) || 1;
   const canvas = $(`#${key}`);
-  // altura maior para caber todas as faixas sem pular
+
   if (canvas.parentElement) canvas.parentElement.style.height = "520px";
+
   state.charts[key] = new Chart(canvas, {
     type: "bar",
-    data: { labels, datasets: [
-      { label: "Homens", data: men, backgroundColor: COLORS.male },
-      { label: "Mulheres", data: women, backgroundColor: COLORS.female },
-    ]},
+    data: {
+      labels,
+      datasets: [
+        { label: "Homens", data: men, backgroundColor: COLORS.male },
+        { label: "Mulheres", data: women, backgroundColor: COLORS.female },
+      ],
+    },
     options: {
-      indexAxis: "y", maintainAspectRatio: false,
+      indexAxis: "y",
+      maintainAspectRatio: false,
       scales: {
-        x: { min: -maxAbs, max: maxAbs, ticks: { callback: v => fmt(Math.abs(v)) } },
-        y: { stacked: true, ticks: { autoSkip: false, font: { size: 10.5 } } },
+        x: {
+          min: -maxAbs,
+          max: maxAbs,
+          ticks: { callback: v => fmt(Math.abs(v)) },
+        },
+        y: {
+          stacked: true,
+          ticks: { autoSkip: false, font: { size: 10.5 } },
+        },
       },
       plugins: {
         legend: { position: "bottom" },
-        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(Math.abs(c.parsed.x))}` } },
+        tooltip: {
+          callbacks: {
+            label: c => `${c.dataset.label}: ${fmt(Math.abs(c.parsed.x))}`,
+          },
+        },
       },
     },
   });
@@ -1190,11 +1206,11 @@ function honestYScale(values, options = {}) {
   const max = Math.max(...nums);
 
   if (forceZero) {
-  return {
-    min: 0,
-    suggestedMax: Math.max(1, Math.ceil(max * (1 + padPct))),
-  };
-}
+    return {
+      min: 0,
+      suggestedMax: Math.max(1, Math.ceil(max * (1 + padPct))),
+    };
+  }
 
   if (min === max) {
     const pad = Math.max(max * minSpanPct, 1);
@@ -1219,15 +1235,18 @@ function honestYScale(values, options = {}) {
 function renderEvolution(scope, series, pyramid) {
   const key = `${scope}-evolution`;
   destroyChart(key);
-  const men2022 = Object.values(pyramid?.men || {}).reduce((a,b)=>a+b, 0);
-  const women2022 = Object.values(pyramid?.women || {}).reduce((a,b)=>a+b, 0);
+
+  const men2022 = Object.values(pyramid?.men || {}).reduce((a, b) => a + b, 0);
+  const women2022 = Object.values(pyramid?.women || {}).reduce((a, b) => a + b, 0);
   const total2022 = men2022 + women2022;
-  // Razão de gênero (Censo 2022) aplicada a cada ano p/ estimar evolução por sexo
+
   const ratioM = total2022 ? men2022 / total2022 : 0.49;
   const ratioF = total2022 ? women2022 / total2022 : 0.51;
+
   const years = series.map(([y]) => y);
   const totals = series.map(([, v]) => v);
   const yScale = honestYScale(totals, { forceZero: true });
+
   state.charts[key] = new Chart($(`#${key}`), {
     type: "line",
     data: {
@@ -1236,20 +1255,35 @@ function renderEvolution(scope, series, pyramid) {
         {
           label: "Total",
           data: totals,
-          borderColor: COLORS.brand, backgroundColor: "rgba(26,53,102,0.12)",
-          tension: 0.3, fill: true, pointRadius: 4, pointBackgroundColor: COLORS.brand, borderWidth: 2.5,
+          borderColor: COLORS.brand,
+          backgroundColor: "rgba(26,53,102,0.12)",
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.brand,
+          borderWidth: 2.5,
         },
         {
           label: "Homens",
           data: totals.map(v => Math.round(v * ratioM)),
-          borderColor: COLORS.male, backgroundColor: "transparent",
-          tension: 0.3, fill: false, pointRadius: 3, borderWidth: 2, borderDash: [4, 4],
+          borderColor: COLORS.male,
+          backgroundColor: "transparent",
+          tension: 0.3,
+          fill: false,
+          pointRadius: 3,
+          borderWidth: 2,
+          borderDash: [4, 4],
         },
         {
           label: "Mulheres",
           data: totals.map(v => Math.round(v * ratioF)),
-          borderColor: COLORS.female, backgroundColor: "transparent",
-          tension: 0.3, fill: false, pointRadius: 3, borderWidth: 2, borderDash: [4, 4],
+          borderColor: COLORS.female,
+          backgroundColor: "transparent",
+          tension: 0.3,
+          fill: false,
+          pointRadius: 3,
+          borderWidth: 2,
+          borderDash: [4, 4],
         },
       ],
     },
@@ -1257,14 +1291,18 @@ function renderEvolution(scope, series, pyramid) {
       maintainAspectRatio: false,
       plugins: {
         legend: { position: "bottom" },
-        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.parsed.y)}` } },
+        tooltip: {
+          callbacks: {
+            label: c => `${c.dataset.label}: ${fmt(c.parsed.y)}`,
+          },
+        },
       },
       scales: {
-  y: {
-    ...yScale,
-    ticks: { callback: v => fmt(v) },
-  },
-},
+        y: {
+          ...yScale,
+          ticks: { callback: v => fmt(v) },
+        },
+      },
     },
   });
 }
@@ -2436,37 +2474,43 @@ function renderBubbleChart(points) {
     return;
   }
 
-const colorFor = (kind) => {
-  if (kind === "current") return "#1a3566";
-  if (kind === "poa") return "#d94a4a";
-  if (kind === "caxias") return "#2e8b57";
-  if (kind === "microAgg") return "#111827";
-  return "#8a93a3";
-};
+  const colorFor = (kind) => {
+    if (kind === "current") return "#1a3566";
+    if (kind === "poa") return "#d94a4a";
+    if (kind === "caxias") return "#2e8b57";
+    if (kind === "microAgg") return "#111827";
+    return "#8a93a3";
+  };
 
-const labelForKind = (kind) => {
-  if (kind === "current") return "Cidade pesquisada";
-  if (kind === "poa") return "Porto Alegre";
-  if (kind === "caxias") return "Caxias do Sul";
-  if (kind === "microAgg") return "Microrregião consolidada";
-  return "Município da microrregião";
-};
+  const labelForKind = (kind) => {
+    if (kind === "current") return "Cidade pesquisada";
+    if (kind === "poa") return "Porto Alegre";
+    if (kind === "caxias") return "Caxias do Sul";
+    if (kind === "microAgg") return "Microrregião consolidada";
+    return "Município da microrregião";
+  };
 
-const ds = {
-  label: "Municípios",
-  data: points.map(p => ({
-    x: p.x,
-    y: p.y,
-    r: p.r,
-    label: p.label,
-    kind: p.kind,
-    pib: p.pib,
-  })),
-  backgroundColor: points.map(p => colorFor(p.kind) + "cc"),
-  borderColor: points.map(p => colorFor(p.kind)),
-  borderWidth: points.map(p => p.kind === "micro" ? 1.5 : 2.8),
-  pointStyle: points.map(p => p.kind === "microAgg" ? "rect" : "circle"),
-};
+  const xValues = points.map(p => p.x);
+  const yValues = points.map(p => p.y);
+
+  const xScale = honestYScale(xValues, { forceZero: true, padPct: 0.12 });
+  const yScale = honestYScale(yValues, { forceZero: true, padPct: 0.15 });
+
+  const ds = {
+    label: "Municípios",
+    data: points.map(p => ({
+      x: p.x,
+      y: p.y,
+      r: p.r,
+      label: p.label,
+      kind: p.kind,
+      pib: p.pib,
+    })),
+    backgroundColor: points.map(p => colorFor(p.kind) + "cc"),
+    borderColor: points.map(p => colorFor(p.kind)),
+    borderWidth: points.map(p => p.kind === "micro" ? 1.5 : 2.8),
+    pointStyle: points.map(p => p.kind === "microAgg" ? "rect" : "circle"),
+  };
 
   state.charts[key] = new Chart(canvas, {
     type: "bubble",
@@ -2494,10 +2538,13 @@ const ds = {
             },
           },
         },
-        bubbleLabels: { show: true },
+        bubbleLabels: {
+          show: true,
+        },
       },
       scales: {
         x: {
+          ...xScale,
           title: {
             display: true,
             text: "Beneficiários médico-hospitalares por leito privado (maior = maior pressão)",
@@ -2507,6 +2554,7 @@ const ds = {
           },
         },
         y: {
+          ...yScale,
           title: {
             display: true,
             text: "Taxa de cobertura de planos de saúde (% da população)",
@@ -2526,7 +2574,7 @@ const ds = {
         ctx.save();
 
         const isPrinting = document.body.classList.contains("printing");
-ctx.font = `800 ${isPrinting ? 13 : 10.5}px -apple-system, 'Inter', Helvetica, Arial, sans-serif`;
+        ctx.font = `800 ${isPrinting ? 13 : 10.5}px -apple-system, 'Inter', Helvetica, Arial, sans-serif`;
         ctx.fillStyle = "#0b1220";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
