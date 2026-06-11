@@ -434,8 +434,14 @@ body {
   #suggestions,
   #landing,
   #print-btn,
+  #print-exec-btn,
+  #print-detail-btn,
   .btn-ghost,
   .card.pending {
+    display: none !important;
+  }
+
+  body.print-executive .exec-hide {
     display: none !important;
   }
 
