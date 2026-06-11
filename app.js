@@ -2151,7 +2151,7 @@ if (!pibValues.length) {
     }
 
     const norm = (Math.log10(pib) - minLogPib) / (maxLogPib - minLogPib);
-    p.r = 7 + norm * 23;
+    p.r = 5 + norm * 34;
   }
 }
 
@@ -2336,7 +2336,7 @@ const ds = {
                 `${p.label} · ${labelForKind(p.kind)}`,
                 `Benef. por leito privado: ${fmt1(p.x)}`,
                 `Cobertura ANS: ${fmt1(p.y)}%`,
-                `PIB: ${pibMi ? "R$ " + fmt1(pibMi) + " mi" : "—"}`,
+                `PIB usado no tamanho: ${pibMi ? "R$ " + fmt1(pibMi) + " mi" : "—"}`,
               ];
             },
           },
