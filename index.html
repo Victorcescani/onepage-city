@@ -322,24 +322,24 @@
         <div class="kpi"><span class="k-label">Total de hospitais</span><span id="city-hosp-count" class="k-val">—</span></div>
       </div>
 
-<div class="kpis kpis-3">
+<div class="kpis kpis-4">
   <div class="kpi">
-    <span class="k-label">Habitantes por leito total</span>
+    <span class="k-label">Hab./leito total</span>
     <span id="city-habxleito-tot" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-habxleito-tot">—</strong></span>
   </div>
   <div class="kpi">
-    <span class="k-label">Habitantes por leito SUS</span>
+    <span class="k-label">Hab./leito SUS</span>
     <span id="city-habxleito-sus" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-habxleito-sus">—</strong></span>
   </div>
   <div class="kpi">
-    <span class="k-label">Beneficiários por leito privado</span>
+    <span class="k-label">Benef./leito privado</span>
     <span id="city-benefxleito-priv" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-benefxleito-priv">—</strong></span>
   </div>
   <div class="kpi">
-    <span class="k-label">Médicos / 10 mil beneficiários ANS</span>
+    <span class="k-label">Médicos / 10 mil benef. ANS</span>
     <span id="city-medxbenef" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-medxbenef">—</strong></span>
   </div>
@@ -388,11 +388,17 @@
         <p class="muted">Composto: cobertura ANS (30%), renda A+B (25%), crescimento populacional (15%), hospitais por 100k hab. (15%) e disponibilidade de leitos privados por beneficiário (15%). Comparativo: Porto Alegre.</p>
       </div>
 
-      <div class="card">
-        <h3>Posicionamento — beneficiários, leitos e renda</h3>
-        <div class="chart-wrap"><canvas id="city-bubble"></canvas></div>
-        <p class="muted">Bolha azul = cidade pesquisada · Bolha vermelha = Porto Alegre (referência). Eixo X: beneficiários médico-hospitalares por leito privado (menor = mais leitos disponíveis). Eixo Y: CAGR (% a.a.) de beneficiários. Tamanho da bolha: % de pessoas ocupadas com rendimento ≥ 10 salários mínimos (proxy para classe A+B).</p>
-      </div>
+<div class="card">
+  <h3>Benchmark regional — cobertura, pressão assistencial e PIB</h3>
+  <div class="chart-wrap"><canvas id="city-bubble"></canvas></div>
+  <p class="muted">
+    Cada bolha representa um município da microrregião. 
+    Eixo X: beneficiários médico-hospitalares por leito privado (maior valor = maior pressão sobre a oferta privada).
+    Eixo Y: taxa de cobertura de planos de saúde.
+    Tamanho da bolha: PIB municipal.
+    Cidade pesquisada em azul escuro, demais municípios da microrregião em cinza, Porto Alegre em vermelho e Caxias do Sul em verde.
+  </p>
+</div>
 
     </section>
 
@@ -429,6 +435,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=30"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>
