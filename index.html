@@ -43,7 +43,7 @@
       <button class="example" data-id="4106902" data-name="Curitiba" data-uf="PR">Curitiba · PR</button>
       <button class="example" data-id="2927408" data-name="Salvador" data-uf="BA">Salvador · BA</button>
     </div>
-    <p class="landing-note">Dados disponíveis para todos os 5.570 municípios brasileiros. Comparativos contra Porto Alegre · RS. Saúde suplementar (ANS) atualmente pré-processada para o estado do RS.</p>
+    <p class="landing-note">Dados disponíveis para todos os 5.570 municípios brasileiros. Comparativos contra Porto Alegre e Caxias do Sul · RS. Saúde suplementar (ANS) atualmente pré-processada para o estado do RS.</p>
   </section>
 
   <section id="dashboard" class="dashboard" hidden>
@@ -285,28 +285,45 @@
   </p>
 </div>
       
-      <div class="grid-2">
-        <div class="card">
-          <h3>Tipos de estabelecimentos — cidade vs. Porto Alegre</h3>
-          <div class="table-wrap">
-            <table class="table" id="city-types-table">
-              <thead><tr><th>Tipo</th><th class="num">Cidade</th><th class="num">Porto Alegre</th><th class="num">Δ%</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <p class="muted">Δ% = diferença percentual da cidade em relação a Porto Alegre.</p>
-        </div>
-        <div class="card">
-          <h3>Serviços / estruturas — cidade vs. Porto Alegre</h3>
-          <div class="table-wrap">
-            <table class="table" id="city-services-table">
-              <thead><tr><th>Estrutura</th><th class="num">Cidade</th><th class="num">Porto Alegre</th><th class="num">Δ%</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <p class="muted">Δ% = diferença percentual da cidade em relação a Porto Alegre.</p>
-        </div>
-      </div>
+    <div class="grid-2">
+  <div class="card">
+    <h3>Tipos de estabelecimentos — cidade vs. Caxias do Sul e Porto Alegre</h3>
+    <div class="table-wrap">
+      <table class="table" id="city-types-table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th class="num">Cidade</th>
+            <th class="num">Caxias do Sul</th>
+            <th class="num">Porto Alegre</th>
+            <th class="num">Δ% vs Caxias</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="muted">Δ% = diferença percentual da cidade em relação a Caxias do Sul. Porto Alegre permanece como referência de capital.</p>
+  </div>
+
+  <div class="card">
+    <h3>Serviços / estruturas — cidade vs. Caxias do Sul e Porto Alegre</h3>
+    <div class="table-wrap">
+      <table class="table" id="city-services-table">
+        <thead>
+          <tr>
+            <th>Estrutura</th>
+            <th class="num">Cidade</th>
+            <th class="num">Caxias do Sul</th>
+            <th class="num">Porto Alegre</th>
+            <th class="num">Δ% vs Caxias</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="muted">Δ% = diferença percentual da cidade em relação a Caxias do Sul. Porto Alegre permanece como referência de capital.</p>
+  </div>
+</div>
 
       <div class="card">
         <h3>Perfil da cidade</h3>
@@ -436,6 +453,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=33"></script>
+<script src="app.js?v=34"></script>
 </body>
 </html>
