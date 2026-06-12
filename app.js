@@ -3,6 +3,7 @@
  * 3 abas: Microrregião · Cidade · Infra
  * Fontes: IBGE · CNES · ANS (via backend)
  * ========================================================= */
+const TEST_FAST_MODE = true;
 
 const IBGE_LOC = "https://servicodados.ibge.gov.br/api/v1/localidades";
 const IBGE_AGG = "https://servicodados.ibge.gov.br/api/v3/agregados";
@@ -120,6 +121,22 @@ function ansMHOnly(raw) {
     operadoras: ops,
   };
 }
+
+function renderTestModeBanner() {
+  if (!TEST_FAST_MODE) return;
+
+  let banner = document.getElementById("test-mode-banner");
+
+  if (!banner) {
+    banner = el("div", { id: "test-mode-banner", class: "test-mode-banner" });
+    const dash = document.getElementById("dashboard");
+    if (dash) dash.prepend(banner);
+  }
+
+  banner.textContent =
+    "VERSÃO TESTE — Base CNES de estabelecimentos temporariamente desligada para acelerar validação de layout. Indicadores de tipos/serviços e mapa CNES podem aparecer zerados.";
+}
+
 // Coleciona top N operadoras + uma linha "Outras" com soma do restante.
 function topOpsWithOutras(ops, n = 5) {
   if (!ops || ops.length <= n) return ops || [];
@@ -559,7 +576,8 @@ async function selectCity(ibgeId, name, uf) {
   $("#search").value = `${name} — ${uf}`;
   $("#landing").hidden = true;
   $("#dashboard").hidden = false;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+renderTestModeBanner();
+window.scrollTo({ top: 0, behavior: "smooth" });
 
   showLoader(`Carregando ${name}…`);
 
@@ -615,28 +633,62 @@ async function selectCity(ibgeId, name, uf) {
       fetchRendimento(String(ibgeId)),
     ]);
 
-    // 4) CNES — paralelo: cidade, POA (comparação), e também micro (só se não for absurdo grande)
-    showLoader("Carregando rede de saúde (CNES)… pode levar alguns segundos.");
-    const estabsCity = await fetchEstablishmentsByCity(String(ibgeId).slice(0, 6));
-    state.establishments = estabsCity;
-    // POA em paralelo com a microrregião agregada
-const poaLoc = await getJSON(`${IBGE_LOC}/municipios/${POA_IBGE}`);
-const poaMicroMun = await getJSON(`${IBGE_LOC}/microrregioes/${poaLoc.microrregiao.id}/municipios`);
-const poaMicroIds = poaMicroMun.map(m => String(m.id));
-const poaMicroCods6 = poaMicroIds.map(i => i.slice(0, 6));
+// 4) CNES — versão normal ou versão teste rápida
+showLoader(
+  TEST_FAST_MODE
+    ? "VERSÃO TESTE: pulando base CNES de estabelecimentos…"
+    : "Carregando rede de saúde (CNES)… pode levar alguns segundos."
+);
 
-const [estabsPOA, estabsCaxias, estabsMicro, estabsPOAMicro, refPopForTables] = await Promise.all([
-  String(ibgeId) === POA_IBGE ? Promise.resolve(estabsCity) : fetchEstablishmentsByCity(POA_CNES),
-  String(ibgeId) === CAXIAS_IBGE ? Promise.resolve(estabsCity) : fetchEstablishmentsByCity(CAXIAS_CNES),
-  fetchEstablishmentsByMicro(microIds.map(i => i.slice(0, 6))),
-  fetchEstablishmentsByMicro(poaMicroCods6),
-  fetchPopByMunicipios([CAXIAS_IBGE, POA_IBGE, ...poaMicroIds]).catch(() => ({})),
-]);
+let estabsCity = [];
+let estabsPOA = [];
+let estabsCaxias = [];
+let estabsMicro = [];
+let estabsPOAMicro = [];
+let popCaxiasRef = null;
+let popPOARef = null;
+let popPOAMicroRef = null;
 
-const popCaxiasRef = refPopForTables[CAXIAS_IBGE] || null;
-const popPOARef = refPopForTables[POA_IBGE] || null;
-const popPOAMicroRef = poaMicroIds.reduce((sum, id) => sum + Number(refPopForTables[id] || 0), 0);
+if (TEST_FAST_MODE) {
+  const refPopForTables = await fetchPopByMunicipios([CAXIAS_IBGE, POA_IBGE]).catch(() => ({}));
 
+  popCaxiasRef = refPopForTables[CAXIAS_IBGE] || null;
+  popPOARef = refPopForTables[POA_IBGE] || null;
+  popPOAMicroRef = null;
+
+  estabsCity = [];
+  estabsPOA = [];
+  estabsCaxias = [];
+  estabsMicro = [];
+  estabsPOAMicro = [];
+} else {
+  estabsCity = await fetchEstablishmentsByCity(String(ibgeId).slice(0, 6));
+
+  const poaLoc = await getJSON(`${IBGE_LOC}/municipios/${POA_IBGE}`);
+  const poaMicroMun = await getJSON(`${IBGE_LOC}/microrregioes/${poaLoc.microrregiao.id}/municipios`);
+  const poaMicroIds = poaMicroMun.map(m => String(m.id));
+  const poaMicroCods6 = poaMicroIds.map(i => i.slice(0, 6));
+
+  const refPopForTables = await fetchPopByMunicipios([CAXIAS_IBGE, POA_IBGE, ...poaMicroIds]).catch(() => ({}));
+
+  [
+    estabsPOA,
+    estabsCaxias,
+    estabsMicro,
+    estabsPOAMicro
+  ] = await Promise.all([
+    String(ibgeId) === POA_IBGE ? Promise.resolve(estabsCity) : fetchEstablishmentsByCity(POA_CNES),
+    String(ibgeId) === CAXIAS_IBGE ? Promise.resolve(estabsCity) : fetchEstablishmentsByCity(CAXIAS_CNES),
+    fetchEstablishmentsByMicro(microIds.map(i => i.slice(0, 6))),
+    fetchEstablishmentsByMicro(poaMicroCods6),
+  ]);
+
+  popCaxiasRef = refPopForTables[CAXIAS_IBGE] || null;
+  popPOARef = refPopForTables[POA_IBGE] || null;
+  popPOAMicroRef = poaMicroIds.reduce((sum, id) => sum + Number(refPopForTables[id] || 0), 0);
+}
+
+state.establishments = estabsCity;
 state.estabsPOA = estabsPOA;
 state.estabsCaxias = estabsCaxias;
 state.estabsMicro = estabsMicro;
