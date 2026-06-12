@@ -57,6 +57,26 @@
       </div>
     </div>
 
+    <!-- ================= RESUMO ESTRATÉGICO ================= -->
+      <div class="card iqm-card">
+        <h3>IQM — Índice de Qualidade de Mercado</h3>
+        <div class="iqm-wrap">
+          <div class="iqm-score">
+            <span id="city-iqm-value" class="iqm-val">—</span>
+            <span class="iqm-scale">/ 100</span>
+            <span id="city-iqm-tier" class="iqm-tier">—</span>
+          </div>
+          <div id="city-iqm-bars" class="iqm-bars"></div>
+        </div>
+        <p class="muted">Composto: cobertura ANS (30%), renda A+B (25%), crescimento populacional (15%), hospitais por 100k hab. (15%) e disponibilidade de leitos privados por beneficiário (15%). Comparativo: Porto Alegre.</p>
+      </div>
+
+      <div class="card">
+        <h3>Benchmark regional — cobertura, pressão assistencial e PIB</h3>
+        <div class="chart-wrap"><canvas id="city-bubble"></canvas></div>
+        <p class="muted">Bolha azul = cidade pesquisada · Bolha vermelha = Porto Alegre (referência). Eixo X: beneficiários médico-hospitalares por leito privado (menor = mais leitos disponíveis). Eixo Y: CAGR (% a.a.) de beneficiários. Tamanho da bolha: % de pessoas ocupadas com rendimento ≥ 10 salários mínimos (proxy para classe A+B).</p>
+      </div>
+
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="micro" role="tab">Microrregião</button>
       <button class="tab" data-tab="cidade" role="tab">Cidade</button>
@@ -98,17 +118,16 @@
       </div>
 
       <div class="grid-2">
-  <div class="card exec-hide">
-    <h3>População por gênero — microrregião</h3>
-    <div class="chart-wrap small"><canvas id="micro-gender"></canvas></div>
-    <div id="micro-gender-legend" class="legend"></div>
-  </div>
-
-  <div class="card exec-hide">
-    <h3>Pirâmide etária — microrregião</h3>
-    <div class="chart-wrap"><canvas id="micro-pyramid"></canvas></div>
-  </div>
-</div>
+        <div class="card">
+          <h3>População por gênero — microrregião</h3>
+          <div class="chart-wrap small"><canvas id="micro-gender"></canvas></div>
+          <div id="micro-gender-legend" class="legend"></div>
+        </div>
+        <div class="card">
+          <h3>Pirâmide etária — microrregião</h3>
+          <div class="chart-wrap"><canvas id="micro-pyramid"></canvas></div>
+        </div>
+      </div>
 
       <div class="card">
         <h3>Evolução populacional — microrregião</h3>
@@ -141,24 +160,42 @@
 
       <div class="grid-2">
         <div class="card">
-          <h3>Tipos de estabelecimentos de saúde — microrregião vs. Porto Alegre</h3>
+          <h3>Tipos de estabelecimentos de saúde — microrregião vs. Caxias do Sul e microrregião de Porto Alegre</h3>
           <div class="table-wrap">
             <table class="table" id="micro-types-table">
-              <thead><tr><th>Tipo de estabelecimento</th><th class="num">Microrregião</th><th class="num">Porto Alegre</th><th class="num">Δ%</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th class="num">Microrregião</th>
+                  <th class="num">Microrr. / 10 mil hab.</th>
+                  <th class="num">Caxias / 10 mil hab.</th>
+                  <th class="num">Microrr. POA / 10 mil hab.</th>
+                  <th class="num">Δ% vs Caxias</th>
+                </tr>
+              </thead>
               <tbody></tbody>
             </table>
           </div>
-          <p class="muted">Fonte: CNES · apidadosabertos.saude.gov.br. Δ% = diferença percentual da microrregião em relação a Porto Alegre.</p>
+          <p class="muted">Fonte: CNES · apidadosabertos.saude.gov.br. Indicadores normalizados por 10 mil habitantes. Δ% = diferença percentual da microrregião em relação a Caxias do Sul.</p>
         </div>
         <div class="card">
-          <h3>Serviços / estruturas — microrregião vs. Porto Alegre</h3>
+          <h3>Serviços / estruturas — microrregião vs. Caxias do Sul e microrregião de Porto Alegre</h3>
           <div class="table-wrap">
             <table class="table" id="micro-services-table">
-              <thead><tr><th>Serviço / estrutura</th><th class="num">Microrregião</th><th class="num">Porto Alegre</th><th class="num">Δ%</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Serviço / estrutura</th>
+                  <th class="num">Microrregião</th>
+                  <th class="num">Microrr. / 10 mil hab.</th>
+                  <th class="num">Caxias / 10 mil hab.</th>
+                  <th class="num">Microrr. POA / 10 mil hab.</th>
+                  <th class="num">Δ% vs Caxias</th>
+                </tr>
+              </thead>
               <tbody></tbody>
             </table>
           </div>
-          <p class="muted">Flags de estrutura assistencial por estabelecimento (CNES). Δ% = diferença percentual da microrregião em relação a Porto Alegre.</p>
+          <p class="muted">Flags de estrutura assistencial por estabelecimento (CNES). Indicadores normalizados por 10 mil habitantes. Δ% = diferença percentual da microrregião em relação a Caxias do Sul.</p>
         </div>
       </div>
 
@@ -170,7 +207,7 @@
         <div class="kpi"><span class="k-label">Total de hospitais</span><span id="micro-hosp-count" class="k-val">—</span></div>
       </div>
 
-      <div class="kpis kpis-4">
+      <div class="kpis kpis-3">
         <div class="kpi">
           <span class="k-label">Habitantes por leito total</span>
           <span id="micro-habxleito-tot" class="k-val">—</span>
@@ -226,17 +263,16 @@
       </div>
 
       <div class="grid-2">
-  <div class="card exec-hide">
-    <h3>População por gênero — cidade</h3>
-    <div class="chart-wrap small"><canvas id="city-gender"></canvas></div>
-    <div id="city-gender-legend" class="legend"></div>
-  </div>
-
-  <div class="card exec-hide">
-    <h3>Pirâmide etária — cidade</h3>
-    <div class="chart-wrap"><canvas id="city-pyramid"></canvas></div>
-  </div>
-</div>
+        <div class="card">
+          <h3>População por gênero</h3>
+          <div class="chart-wrap small"><canvas id="city-gender"></canvas></div>
+          <div id="city-gender-legend" class="legend"></div>
+        </div>
+        <div class="card">
+          <h3>Pirâmide etária</h3>
+          <div class="chart-wrap"><canvas id="city-pyramid"></canvas></div>
+        </div>
+      </div>
 
       <div class="card">
         <h3>Evolução populacional</h3>
@@ -266,67 +302,68 @@
         <p class="muted">Fonte: ANS · mês de referência <span id="city-ans-month">—</span>. Apenas planos com cobertura médico-hospitalar (planos exclusivamente odontológicos não entram).</p>
       </div>
 
-<div class="card exec-hide">
-  <h3>Densidade médica por especialidade — <span class="c-name">cidade</span></h3>
-  <div class="table-wrap">
-    <table class="table" id="city-med-density-table">
-      <thead>
-        <tr>
-          <th>Especialidade médica</th>
-          <th class="num">Nº médicos</th>
-          <th class="num">Médicos / 10 mil hab.</th>
-          <th class="num">REF Caxias do Sul</th>
-          <th class="num">REF POA</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-  <p class="muted">
-    Fonte: ElastiCNES/CNES · competência <span id="city-med-density-comp">—</span>.
-    Médicos únicos deduplicados por CNS. Referências calculadas com a mesma regra para Caxias do Sul e Porto Alegre.
-  </p>
-</div>
-      
-    <div class="grid-2">
-  <div class="card">
-    <h3>Tipos de estabelecimentos — cidade vs. Caxias do Sul e Porto Alegre</h3>
-    <div class="table-wrap">
-      <table class="table" id="city-types-table">
-        <thead>
-          <tr>
-            <th>Tipo</th>
-            <th class="num">Cidade</th>
-            <th class="num">Caxias do Sul</th>
-            <th class="num">Porto Alegre</th>
-            <th class="num">Δ% vs Caxias</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <p class="muted">Δ% = diferença percentual da cidade em relação a Caxias do Sul. Porto Alegre permanece como referência de capital.</p>
-  </div>
+      <div class="card exec-hide">
+        <h3>Densidade médica por especialidade — <span class="c-name">cidade</span></h3>
+        <div class="table-wrap">
+          <table class="table" id="city-med-density-table">
+            <thead>
+              <tr>
+                <th>Especialidade médica</th>
+                <th class="num">Nº médicos</th>
+                <th class="num">Médicos / 10 mil hab.</th>
+                <th class="num">REF Caxias do Sul</th>
+                <th class="num">REF POA</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted">
+          Fonte: ElastiCNES/CNES · competência <span id="city-med-density-comp">—</span>.
+          Médicos únicos deduplicados por CNS. Referências calculadas com a mesma regra para Caxias do Sul e Porto Alegre.
+        </p>
+      </div>
 
-  <div class="card">
-    <h3>Serviços / estruturas — cidade vs. Caxias do Sul e Porto Alegre</h3>
-    <div class="table-wrap">
-      <table class="table" id="city-services-table">
-        <thead>
-          <tr>
-            <th>Estrutura</th>
-            <th class="num">Cidade</th>
-            <th class="num">Caxias do Sul</th>
-            <th class="num">Porto Alegre</th>
-            <th class="num">Δ% vs Caxias</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <p class="muted">Δ% = diferença percentual da cidade em relação a Caxias do Sul. Porto Alegre permanece como referência de capital.</p>
-  </div>
-</div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Tipos de estabelecimentos — cidade vs. Caxias do Sul e Porto Alegre</h3>
+          <div class="table-wrap">
+            <table class="table" id="city-types-table">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th class="num">Cidade</th>
+                  <th class="num">Cidade / 10 mil hab.</th>
+                  <th class="num">Caxias / 10 mil hab.</th>
+                  <th class="num">POA / 10 mil hab.</th>
+                  <th class="num">Δ% vs Caxias</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="muted">Indicadores normalizados por 10 mil habitantes. Δ% = diferença percentual da cidade em relação a Caxias do Sul. Porto Alegre permanece como referência de capital.</p>
+        </div>
+        <div class="card">
+          <h3>Serviços / estruturas — cidade vs. Caxias do Sul e Porto Alegre</h3>
+          <div class="table-wrap">
+            <table class="table" id="city-services-table">
+              <thead>
+                <tr>
+                  <th>Estrutura</th>
+                  <th class="num">Cidade</th>
+                  <th class="num">Cidade / 10 mil hab.</th>
+                  <th class="num">Caxias / 10 mil hab.</th>
+                  <th class="num">POA / 10 mil hab.</th>
+                  <th class="num">Δ% vs Caxias</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="muted">Indicadores normalizados por 10 mil habitantes. Δ% = diferença percentual da cidade em relação a Caxias do Sul. Porto Alegre permanece como referência de capital.</p>
+        </div>
+      </div>
 
       <div class="card">
         <h3>Perfil da cidade</h3>
@@ -342,7 +379,7 @@
         <div class="kpi"><span class="k-label">Total de hospitais</span><span id="city-hosp-count" class="k-val">—</span></div>
       </div>
 
-<div class="kpis kpis-4">
+      <div class="kpis kpis-4">
   <div class="kpi">
     <span class="k-label">Hab./leito total</span>
     <span id="city-habxleito-tot" class="k-val">—</span>
@@ -395,31 +432,7 @@
         <p class="muted">Fonte: IBGE · Censo 2022 (agregado 10292) — pessoas de 14+ ocupadas na semana de referência, por classes de rendimento em salários mínimos.</p>
       </div>
 
-      <div class="card iqm-card">
-        <h3>IQM — Índice de Qualidade de Mercado</h3>
-        <div class="iqm-wrap">
-          <div class="iqm-score">
-            <span id="city-iqm-value" class="iqm-val">—</span>
-            <span class="iqm-scale">/ 100</span>
-            <span id="city-iqm-tier" class="iqm-tier">—</span>
-          </div>
-          <div id="city-iqm-bars" class="iqm-bars"></div>
-        </div>
-        <p class="muted">Composto: cobertura ANS (30%), renda A+B (25%), crescimento populacional (15%), hospitais por 100k hab. (15%) e disponibilidade de leitos privados por beneficiário (15%). Comparativo: Porto Alegre.</p>
-      </div>
 
-<div class="card">
-  <h3>Benchmark regional — cobertura, pressão assistencial e PIB</h3>
-  <div class="chart-wrap"><canvas id="city-bubble"></canvas></div>
-  <p class="muted">
-  Cada bolha representa um município da microrregião. 
-  O quadrado preto representa a microrregião consolidada.
-  Eixo X: beneficiários médico-hospitalares por leito privado (maior valor = maior pressão sobre a oferta privada).
-  Eixo Y: taxa de cobertura de planos de saúde.
-  Tamanho da bolha/quadrado: PIB.
-  Cidade pesquisada em azul escuro, demais municípios da microrregião em cinza, Porto Alegre em vermelho e Caxias do Sul em verde.
-  </p>
-</div>
 
     </section>
 
@@ -456,6 +469,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=38"></script>
+<script src="app.js?v=39"></script>
 </body>
 </html>
