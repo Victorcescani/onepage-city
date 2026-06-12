@@ -452,10 +452,12 @@ body {
 
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 10mm;
+  size: A4 portrait;
+  margin: 9mm;
   }
 
+
+  
   *, *::before, *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -555,6 +557,112 @@ body {
   page-break-after: avoid !important;
 }
 
+
+body.print-executive .tab-panel {
+  break-before: auto !important;
+  page-break-before: auto !important;
+}
+
+body.print-executive .tab-panel[data-panel="infra"] {
+  display: none !important;
+}
+
+body.print-executive .grid-2 {
+  display: block !important;
+}
+
+body.print-executive .hero {
+  margin-bottom: 5mm !important;
+  padding: 6mm !important;
+}
+
+body.print-executive #city-title {
+  font-size: 18pt !important;
+}
+
+body.print-executive #city-sub {
+  font-size: 8.5pt !important;
+}
+
+body.print-executive .card {
+  margin-bottom: 5mm !important;
+  padding: 7px 9px !important;
+}
+
+body.print-executive .card h3 {
+  font-size: 11pt !important;
+  margin-bottom: 5px !important;
+}
+
+body.print-executive .kpis {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 3mm !important;
+  margin-bottom: 4mm !important;
+}
+
+body.print-executive .kpi {
+  min-height: 46px !important;
+  padding: 6px 7px !important;
+}
+
+body.print-executive .kpi .k-label {
+  font-size: 7.5pt !important;
+}
+
+body.print-executive .kpi .k-val {
+  font-size: 12pt !important;
+}
+
+body.print-executive .kpi.big .k-val {
+  font-size: 14pt !important;
+}
+
+body.print-executive .kpi .k-compare {
+  font-size: 7.2pt !important;
+}
+
+body.print-executive .iqm-wrap {
+  display: grid !important;
+  grid-template-columns: 130px 1fr !important;
+  gap: 8px !important;
+}
+
+body.print-executive .iqm-score {
+  min-height: 90px !important;
+  padding: 10px !important;
+}
+
+body.print-executive .iqm-val {
+  font-size: 34pt !important;
+}
+
+body.print-executive .iqm-tier {
+  font-size: 8pt !important;
+}
+
+body.print-executive .iqm-refbox {
+  font-size: 7.5pt !important;
+}
+
+body.print-executive .iqm-bar-row {
+  grid-template-columns: 120px 1fr 48px 95px !important;
+  gap: 5px !important;
+  font-size: 8pt !important;
+}
+
+body.print-executive .iqm-bar-row .ref {
+  font-size: 7pt !important;
+}
+
+body.print-executive .chart-wrap {
+  height: 70mm !important;
+}
+
+body.print-executive .card:has(canvas#city-bubble) {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+  
 .tab-panel[data-panel="micro"]::before {
   content: "MICRORREGIÃO";
 }
@@ -851,6 +959,35 @@ body {
     gap: 8px !important;
   }
 
+/* ===== PDF executivo: versão A4 vertical enxuta ===== */
+
+body.print-executive .test-mode-banner,
+body.print-executive .card:has(canvas#micro-gender),
+body.print-executive .card:has(canvas#micro-pyramid),
+body.print-executive .card:has(canvas#micro-evolution),
+body.print-executive .card:has(canvas#micro-ans-evol),
+body.print-executive .card:has(canvas#city-gender),
+body.print-executive .card:has(canvas#city-pyramid),
+body.print-executive .card:has(canvas#city-evolution),
+body.print-executive .card:has(canvas#city-ans-evol),
+body.print-executive .card:has(canvas#city-renda),
+body.print-executive .card:has(canvas#city-leitos-priv-evol),
+body.print-executive .card:has(canvas#micro-leitos-priv-evol),
+body.print-executive .card:has(#micro-map),
+body.print-executive .card:has(#infra-map),
+body.print-executive .card:has(#city-profile),
+body.print-executive .card:has(#top3-hospitals),
+body.print-executive .card:has(#micro-leitos-table),
+body.print-executive .card:has(#city-leitos-table),
+body.print-executive .card:has(#micro-pop-table),
+body.print-executive .card:has(#micro-ops-table),
+body.print-executive .card:has(#city-ops-table),
+body.print-executive .card:has(#city-med-density-table) {
+  display: none !important;
+}
+
+
+  
 /* ===== PDF executivo: ocultar tabelas analíticas longas ===== */
 body.print-executive .card:has(#micro-types-table),
 body.print-executive .card:has(#micro-services-table),
