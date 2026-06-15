@@ -1653,3 +1653,208 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     line-height: 1.15;
   }
 }
+/* ================= AJUSTE FINO IQM ================= */
+
+.iqm-card {
+  padding: 12px 14px;
+}
+
+.iqm-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.iqm-wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 14px;
+  align-items: start;
+}
+
+.iqm-score {
+  min-height: 168px;
+  padding: 12px 10px 10px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.iqm-val {
+  font-size: 62px;
+  line-height: 1;
+}
+
+.iqm-scale {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.iqm-tier {
+  margin-top: 4px;
+  font-size: 11px;
+  padding: 5px 12px;
+}
+
+.iqm-refbox {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.iqm-refbox span {
+  display: block;
+}
+
+.iqm-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.iqm-bar-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 72px 125px;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.iqm-bar-row .label {
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.iqm-bar-row .track {
+  height: 8px;
+  border-radius: 999px;
+}
+
+.iqm-bar-row .val {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.iqm-bar-row .ref {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.iqm-footer-line {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 14px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.iqm-2025-box {
+  width: 100%;
+  min-height: 40px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.iqm-2025-label {
+  font-size: 10px;
+}
+
+.iqm-2025-value {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.iqm-2025-class {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.iqm-composition-note {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+/* impressão / pdf */
+@media print {
+  .iqm-card {
+    padding: 10px 12px;
+  }
+
+  .iqm-card h3 {
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .iqm-wrap {
+    grid-template-columns: 205px 1fr;
+    column-gap: 12px;
+  }
+
+  .iqm-score {
+    min-height: 154px;
+    padding: 10px 9px 9px;
+  }
+
+  .iqm-val {
+    font-size: 56px;
+  }
+
+  .iqm-tier {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .iqm-refbox {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+
+  .iqm-bars {
+    gap: 5px;
+  }
+
+  .iqm-bar-row {
+    grid-template-columns: 205px 1fr 66px 118px;
+    column-gap: 7px;
+  }
+
+  .iqm-bar-row .label {
+    font-size: 10.5px;
+  }
+
+  .iqm-bar-row .track {
+    height: 7px;
+  }
+
+  .iqm-bar-row .val {
+    font-size: 10.5px;
+  }
+
+  .iqm-bar-row .ref {
+    font-size: 9px;
+    line-height: 1.1;
+  }
+
+  .iqm-footer-line {
+    grid-template-columns: 205px 1fr;
+    column-gap: 12px;
+    margin-top: 5px;
+  }
+
+  .iqm-2025-box {
+    min-height: 34px;
+    padding: 4px 8px;
+  }
+
+  .iqm-2025-value {
+    font-size: 16px;
+  }
+
+  .iqm-2025-class,
+  .iqm-2025-label,
+  .iqm-composition-note {
+    font-size: 8.5px;
+  }
+}
