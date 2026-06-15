@@ -1858,3 +1858,254 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     font-size: 8.5px;
   }
 }
+
+/* ================= IQM — ajuste fino para impressão ================= */
+
+.iqm-card {
+  padding: 10px 12px;
+}
+
+.iqm-card h3 {
+  margin: 0 0 5px 0;
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.iqm-wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 12px;
+  align-items: stretch;
+}
+
+/* caixa principal da esquerda */
+.iqm-score {
+  height: 118px;
+  min-height: 118px;
+  padding: 10px 10px 8px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.iqm-val {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.iqm-scale {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.iqm-tier {
+  margin-top: 4px;
+  font-size: 10px;
+  padding: 4px 10px;
+}
+
+.iqm-refbox {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.iqm-refbox span {
+  display: block;
+}
+
+/* bloco das barras: mesma altura útil da caixa da esquerda */
+.iqm-bars {
+  height: 118px;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1px 0;
+  margin: 0;
+}
+
+.iqm-bar-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 58px 92px;
+  column-gap: 6px;
+  align-items: center;
+  min-height: 18px;
+}
+
+.iqm-bar-row .label {
+  font-size: 10px;
+  line-height: 1.05;
+}
+
+.iqm-bar-row .track {
+  height: 7px;
+  border-radius: 999px;
+}
+
+.iqm-bar-row .val {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.iqm-bar-row .ref {
+  font-size: 8.5px;
+  line-height: 1.05;
+  text-align: right;
+}
+
+/* faixa inferior */
+.iqm-footer-line {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 12px;
+  align-items: center;
+  margin-top: 3px;
+}
+
+.iqm-2025-box {
+  width: 100%;
+  height: 30px;
+  min-height: 30px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-items: center;
+}
+
+.iqm-2025-label {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.iqm-2025-value {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.iqm-2025-class {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.iqm-composition-note {
+  margin: 0;
+  font-size: 8.5px;
+  line-height: 1.08;
+  text-align: left;
+}
+
+/* ================= impressão ================= */
+
+@media print {
+  .iqm-card {
+    padding: 9px 10px;
+  }
+
+  .iqm-card h3 {
+    margin: 0 0 4px 0;
+    font-size: 12.5px;
+    line-height: 1.05;
+  }
+
+  .iqm-wrap {
+    grid-template-columns: 205px 1fr;
+    column-gap: 10px;
+  }
+
+  .iqm-score {
+    height: 108px;
+    min-height: 108px;
+    padding: 8px 8px 7px;
+  }
+
+  .iqm-val {
+    font-size: 50px;
+  }
+
+  .iqm-scale {
+    font-size: 11px;
+  }
+
+  .iqm-tier {
+    margin-top: 3px;
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .iqm-refbox {
+    margin-top: 7px;
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .iqm-bars {
+    height: 108px;
+    min-height: 108px;
+    padding: 0;
+  }
+
+  .iqm-bar-row {
+    grid-template-columns: 140px 1fr 54px 86px;
+    column-gap: 5px;
+    min-height: 16px;
+  }
+
+  .iqm-bar-row .label {
+    font-size: 9.5px;
+    line-height: 1.02;
+  }
+
+  .iqm-bar-row .track {
+    height: 6px;
+  }
+
+  .iqm-bar-row .val {
+    font-size: 9.5px;
+  }
+
+  .iqm-bar-row .ref {
+    font-size: 8px;
+    line-height: 1;
+  }
+
+  .iqm-footer-line {
+    grid-template-columns: 205px 1fr;
+    column-gap: 10px;
+    margin-top: 2px;
+  }
+
+  .iqm-2025-box {
+    height: 26px;
+    min-height: 26px;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .iqm-2025-label {
+    font-size: 8px;
+  }
+
+  .iqm-2025-value {
+    font-size: 15px;
+  }
+
+  .iqm-2025-class {
+    font-size: 8px;
+  }
+
+  .iqm-composition-note {
+    font-size: 8px;
+    line-height: 1.02;
+  }
+}
