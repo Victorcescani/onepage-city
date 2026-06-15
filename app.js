@@ -423,12 +423,13 @@ async function loadPOAReference() {
     const microIds = microMun.map(m => String(m.id));
     const microCods6 = microIds.map(i => i.slice(0, 6)).join(",");
 
-    const [popPOA, popMicro, ansCityRaw, ansMicroRaw, leitosCity, leitosMicro] = await Promise.all([
+    const [popPOA, popMicro, ansCityRaw, ansMicroRaw, leitosCityRaw, leitosCityMultiRaw, leitosMicro] = await Promise.all([
       fetchPopByMunicipios([POA_IBGE]).catch(() => ({})),
       fetchPopByMunicipios(microIds).catch(() => ({})),
       getJSON(`${ANS}?uf=${ufSigla}&cod=${POA_CNES}`).catch(() => null),
       getJSON(`${ANS}/multi?uf=${ufSigla}&cods=${microCods6}`).catch(() => null),
       getJSON(`${LEITOS}?cod=${POA_CNES}`).catch(() => null),
+      getJSON(`${LEITOS}/multi?cods=${POA_CNES}`).catch(() => null),
       getJSON(`${LEITOS}/multi?cods=${microCods6}`).catch(() => null),
     ]);
 
@@ -436,6 +437,7 @@ async function loadPOAReference() {
     const ansMicro = ansMHOnly(ansMicroRaw);
     const cityPop = popPOA[POA_IBGE] || 0;
     const microPop = Object.values(popMicro).reduce((a, b) => a + (b || 0), 0);
+    const leitosCity = leitosCityRaw || leitosCityMultiRaw;
 
     _poaRefCache = {
       city: {
@@ -857,6 +859,7 @@ renderIQMandBubble({
   cityAns: ansCity,
   cityAnsHist: ansHistCity?.series || [],
   cityRendimento: rendimento,
+  ansMicro,
   estabsCity,
   popByCity,
   leitosMicro,
@@ -2139,7 +2142,11 @@ function renderLeitosPrivEvolution(scope, series) {
   destroyChart(key);
   const canvas = $(`#${key}`);
   if (!canvas) return;
+  const card = canvas.closest(".card");
+  if (card) card.classList.remove("empty-history");
+
   if (!series || series.length < 2) {
+    if (card) card.classList.add("empty-history");
     canvas.parentElement.innerHTML =
       `<p class="muted">Histórico anual indisponível para esta competência.</p>`;
     return;
@@ -2471,6 +2478,7 @@ async function buildRegionalBubblePoints({
   leitosMicro,
   cityLeitos,
   cityAns,
+  ansMicro,
   poaRef
 }) {
   const microIds = state.micro.municipios.map(m => String(m.id));
@@ -2521,9 +2529,11 @@ const microPopTotal = microIds.reduce((sum, id) => {
   return sum + Number(popByCity[id] || 0);
 }, 0);
 
-const microAnsTotal = microIds.reduce((sum, id) => {
-  return sum + Number(ansByCity[id]?.total || 0);
-}, 0);
+const microAnsTotal = ansMicro?.total != null
+  ? Number(ansMicro.total || 0)
+  : microIds.reduce((sum, id) => {
+      return sum + Number(ansByCity[id]?.total || 0);
+    }, 0);
 
 const microPrivadosTotal = leitosMicro?.totais?.privados != null
   ? Number(leitosMicro.totais.privados || 0)
@@ -2545,6 +2555,20 @@ const microAggPoint = buildBubblePoint({
 
 if (microAggPoint) {
   pointsById[microAggPoint.id] = microAggPoint;
+}
+
+const currentPoint = buildBubblePoint({
+  id: String(cityIbge),
+  label: state.city?.name || "Cidade pesquisada",
+  kind: "current",
+  pop: popByCity[String(cityIbge)],
+  ansTotal: cityAns?.total || 0,
+  privados: cityLeitos?.totais?.privados || privadosByCod6[cityCod6] || 0,
+  pib: pibByCity[String(cityIbge)],
+});
+
+if (currentPoint) {
+  pointsById[String(cityIbge)] = currentPoint;
 }
   
   const caxiasAns = ansMHOnly(ansCaxiasRaw);
@@ -2620,7 +2644,7 @@ const rank = {
 async function renderIQMandBubble(ctx) {
   const {
     cityIbge, cityName, cityUF, cityPop, censo2010,
-    cityLeitos, cityAns, cityAnsHist, cityRendimento,
+    cityLeitos, cityAns, cityAnsHist, cityRendimento, ansMicro,
     estabsCity, popByCity, leitosMicro, poaRef,
   } = ctx;
 
@@ -2818,6 +2842,7 @@ async function renderIQMandBubble(ctx) {
       leitosMicro,
       cityLeitos,
       cityAns,
+      ansMicro,
       poaRef,
     });
 
