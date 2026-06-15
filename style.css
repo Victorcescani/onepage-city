@@ -1911,3 +1911,541 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     height: 60mm !important;
   }
 }
+
+/* =========================================================
+ * CORREÇÃO FINAL - IQM 2025, benchmark regional e impressão
+ * 15-06-2026
+ * Este bloco deve permanecer no FINAL do arquivo para sobrescrever
+ * os hotfixes anteriores sem precisar apagar manualmente regras antigas.
+ * ========================================================= */
+
+/* ---------- IQM: layout de tela mais estável ---------- */
+.iqm-card {
+  padding: 16px 18px 18px !important;
+  overflow: visible !important;
+}
+
+.iqm-card h3 {
+  margin: 0 0 12px 0 !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+}
+
+.iqm-wrap {
+  display: grid !important;
+  grid-template-columns: 220px minmax(0, 1fr) !important;
+  column-gap: 18px !important;
+  align-items: stretch !important;
+}
+
+.iqm-score {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 140px !important;
+  padding: 16px 14px !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+}
+
+.iqm-val {
+  font-size: 56px !important;
+  line-height: 0.95 !important;
+  font-weight: 900 !important;
+}
+
+.iqm-scale {
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+.iqm-tier {
+  margin-top: 5px !important;
+  font-size: 11px !important;
+  padding: 4px 12px !important;
+}
+
+.iqm-refbox {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  line-height: 1.18 !important;
+}
+
+.iqm-bars {
+  height: auto !important;
+  min-height: 140px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 7px !important;
+  padding: 1px 0 !important;
+}
+
+.iqm-bar-row {
+  display: grid !important;
+  grid-template-columns: 170px minmax(120px, 1fr) 62px 105px !important;
+  column-gap: 8px !important;
+  align-items: center !important;
+  min-height: 18px !important;
+}
+
+.iqm-bar-row .label {
+  font-size: 11px !important;
+  line-height: 1.15 !important;
+}
+
+.iqm-bar-row .track {
+  height: 8px !important;
+  border-radius: 999px !important;
+}
+
+.iqm-bar-row .val {
+  font-size: 11px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.iqm-bar-row .ref {
+  font-size: 9.2px !important;
+  line-height: 1.08 !important;
+  white-space: normal !important;
+}
+
+/* IQM 2025 deixa de parecer uma segunda caixa principal; vira referência discreta */
+.iqm-footer-line {
+  display: grid !important;
+  grid-template-columns: 220px minmax(0, 1fr) !important;
+  column-gap: 18px !important;
+  align-items: stretch !important;
+  margin-top: 10px !important;
+}
+
+.iqm-2025-box {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 44px !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  background: #f3f6fb !important;
+  color: #0b1220 !important;
+  border: 1px solid #cfd6e4 !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 8px !important;
+  row-gap: 2px !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.iqm-2025-label {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 / 3 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 1.05 !important;
+  color: #1a3566 !important;
+  opacity: 1 !important;
+  text-transform: uppercase !important;
+}
+
+.iqm-2025-value {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 / 2 !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  color: #0b1220 !important;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.iqm-2025-class {
+  grid-column: 2 / 3 !important;
+  grid-row: 2 / 3 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  color: #1a3566 !important;
+  text-align: right !important;
+}
+
+.iqm-composition-note {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  color: var(--muted) !important;
+  align-self: center !important;
+}
+
+/* Benchmark regional em tela: voltar a ter presença visual */
+.card:has(canvas#city-bubble) .chart-wrap {
+  height: 380px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.card:has(canvas#city-bubble) canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 900px) {
+  .iqm-wrap,
+  .iqm-footer-line {
+    grid-template-columns: 1fr !important;
+  }
+
+  .iqm-bar-row {
+    grid-template-columns: 140px minmax(100px, 1fr) 55px 90px !important;
+  }
+}
+
+/* ---------- Impressão executiva consolidada ---------- */
+@media print {
+  body.print-executive {
+    color: #000 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.25 !important;
+  }
+
+  body.print-executive .hero,
+  body.print-executive .card,
+  body.print-executive .kpi {
+    border: 0.9px solid #111827 !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  body.print-executive .hero {
+    padding: 4.5mm 5mm !important;
+    margin-bottom: 3.5mm !important;
+  }
+
+  body.print-executive #city-title {
+    font-size: 16.5pt !important;
+    line-height: 1.05 !important;
+    color: #000 !important;
+  }
+
+  body.print-executive #city-sub {
+    font-size: 7.8pt !important;
+    line-height: 1.15 !important;
+    color: #111827 !important;
+  }
+
+  body.print-executive .card {
+    padding: 6px 8px !important;
+    margin-bottom: 3.5mm !important;
+  }
+
+  body.print-executive .card h3 {
+    font-size: 10.5pt !important;
+    line-height: 1.08 !important;
+    margin-bottom: 4px !important;
+    color: #000 !important;
+    font-weight: 950 !important;
+  }
+
+  body.print-executive .muted {
+    color: #111827 !important;
+  }
+
+  /* IQM impresso: score, barras e IQM 2025 sem sobreposição */
+  body.print-executive .iqm-card {
+    padding: 6px 8px !important;
+    margin-bottom: 3.5mm !important;
+    overflow: hidden !important;
+  }
+
+  body.print-executive .iqm-card h3 {
+    font-size: 10.4pt !important;
+    margin-bottom: 4px !important;
+  }
+
+  body.print-executive .iqm-wrap {
+    grid-template-columns: 125px minmax(0, 1fr) !important;
+    column-gap: 7px !important;
+    align-items: stretch !important;
+  }
+
+  body.print-executive .iqm-score {
+    width: 125px !important;
+    min-height: 88px !important;
+    height: 88px !important;
+    padding: 6px 6px 5px !important;
+    border-radius: 6px !important;
+    background: #0b1220 !important;
+    color: #fff !important;
+    overflow: hidden !important;
+  }
+
+  body.print-executive .iqm-val {
+    font-size: 30pt !important;
+    line-height: 0.9 !important;
+    color: #fff !important;
+  }
+
+  body.print-executive .iqm-scale {
+    font-size: 7.3pt !important;
+    color: rgba(255,255,255,0.9) !important;
+  }
+
+  body.print-executive .iqm-tier {
+    margin-top: 2px !important;
+    padding: 2px 7px !important;
+    font-size: 7.2pt !important;
+    color: #fff !important;
+  }
+
+  body.print-executive .iqm-refbox {
+    margin-top: 4px !important;
+    font-size: 6.8pt !important;
+    line-height: 1.05 !important;
+    color: #fff !important;
+  }
+
+  body.print-executive .iqm-refbox strong {
+    font-size: 7.1pt !important;
+    color: #fff !important;
+  }
+
+  body.print-executive .iqm-bars {
+    height: 88px !important;
+    min-height: 88px !important;
+    gap: 0 !important;
+    justify-content: space-between !important;
+  }
+
+  body.print-executive .iqm-bar-row {
+    grid-template-columns: 92px minmax(90px, 1fr) 42px 78px !important;
+    column-gap: 4px !important;
+    min-height: 13.5px !important;
+    font-size: 6.9pt !important;
+  }
+
+  body.print-executive .iqm-bar-row .label {
+    font-size: 6.8pt !important;
+    line-height: 1 !important;
+    color: #000 !important;
+    font-weight: 800 !important;
+  }
+
+  body.print-executive .iqm-bar-row .track {
+    height: 5px !important;
+    border: 0.5px solid #6b7280 !important;
+    background: #eef1f5 !important;
+  }
+
+  body.print-executive .iqm-bar-row .val {
+    font-size: 6.9pt !important;
+    color: #000 !important;
+    font-weight: 900 !important;
+  }
+
+  body.print-executive .iqm-bar-row .ref {
+    font-size: 5.8pt !important;
+    color: #111827 !important;
+    line-height: 1 !important;
+  }
+
+  body.print-executive .iqm-footer-line {
+    grid-template-columns: 125px minmax(0, 1fr) !important;
+    column-gap: 7px !important;
+    margin-top: 3px !important;
+    align-items: center !important;
+  }
+
+  body.print-executive .iqm-2025-box {
+    width: 125px !important;
+    min-height: 23px !important;
+    height: 23px !important;
+    padding: 2px 5px !important;
+    border-radius: 4px !important;
+    background: #f3f6fb !important;
+    border: 0.7px solid #6b7280 !important;
+    color: #000 !important;
+  }
+
+  body.print-executive .iqm-2025-label {
+    font-size: 5.9pt !important;
+    color: #000 !important;
+  }
+
+  body.print-executive .iqm-2025-value {
+    font-size: 10.5pt !important;
+    color: #000 !important;
+  }
+
+  body.print-executive .iqm-2025-class {
+    font-size: 5.9pt !important;
+    color: #000 !important;
+  }
+
+  body.print-executive .iqm-composition-note {
+    font-size: 6.3pt !important;
+    line-height: 1.08 !important;
+    color: #111827 !important;
+  }
+
+  /* Benchmark regional: recuperar tamanho e importância visual */
+  body.print-executive .card:has(canvas#city-bubble) {
+    display: block !important;
+    margin-bottom: 4mm !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
+    height: 82mm !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body.print-executive .card:has(canvas#city-bubble) canvas,
+  body.print-executive .card:has(canvas#city-bubble) img.print-snapshot {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    object-fit: contain !important;
+  }
+
+  body.print-executive .card:has(canvas#city-bubble) .muted {
+    font-size: 6.8pt !important;
+    line-height: 1.08 !important;
+    margin-top: 2px !important;
+  }
+
+  /* KPIs mais compactos, mas ainda legíveis */
+  body.print-executive .kpis {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 2mm !important;
+    margin-bottom: 2.5mm !important;
+  }
+
+  body.print-executive .kpis.kpis-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  body.print-executive .kpis.kpis-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body.print-executive .kpi {
+    min-height: 33px !important;
+    padding: 4px 5px !important;
+    gap: 1px !important;
+  }
+
+  body.print-executive .kpi .k-label {
+    font-size: 6.9pt !important;
+    line-height: 1.05 !important;
+    color: #111827 !important;
+    font-weight: 850 !important;
+  }
+
+  body.print-executive .kpi.big .k-label {
+    color: #fff !important;
+  }
+
+  body.print-executive .kpi .k-val {
+    font-size: 12.4pt !important;
+    line-height: 1 !important;
+    color: #000 !important;
+    font-weight: 950 !important;
+  }
+
+  body.print-executive .kpi.big {
+    background: #0b1220 !important;
+    border-color: #0b1220 !important;
+    color: #fff !important;
+  }
+
+  body.print-executive .kpi.big .k-val {
+    font-size: 14pt !important;
+    color: #fff !important;
+  }
+
+  body.print-executive .kpi .k-compare {
+    font-size: 6.4pt !important;
+    line-height: 1.05 !important;
+    padding-top: 1px !important;
+    margin-top: 1px !important;
+    border-top: 0.6px solid #9ca3af !important;
+    color: #111827 !important;
+  }
+
+  body.print-executive .kpi .k-compare strong {
+    color: #000 !important;
+  }
+
+  /* CIDADE mantém página própria; perfil fica fora; leitos por hospital fica dentro */
+  body.print-executive .tab-panel[data-panel="cidade"],
+  body.print-executive .tab-panel[data-panel="city"] {
+    display: flex !important;
+    flex-direction: column !important;
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  body.print-executive .tab-panel[data-panel="cidade"]::before,
+  body.print-executive .tab-panel[data-panel="city"]::before {
+    order: 0 !important;
+    margin-bottom: 3mm !important;
+  }
+
+  body.print-executive .tab-panel[data-panel="cidade"] > *,
+  body.print-executive .tab-panel[data-panel="city"] > * {
+    order: 20 !important;
+  }
+
+  body.print-executive .tab-panel[data-panel="cidade"] .kpis,
+  body.print-executive .tab-panel[data-panel="city"] .kpis {
+    order: 2 !important;
+  }
+
+  body.print-executive .tab-panel[data-panel="cidade"] .card:has(#city-profile),
+  body.print-executive .tab-panel[data-panel="city"] .card:has(#city-profile) {
+    display: none !important;
+  }
+
+  body.print-executive .tab-panel[data-panel="cidade"] .card:has(#city-leitos-table),
+  body.print-executive .tab-panel[data-panel="city"] .card:has(#city-leitos-table) {
+    display: block !important;
+    order: 3 !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+    margin-bottom: 4mm !important;
+  }
+
+  body.print-executive #city-leitos-table {
+    font-size: 7.4pt !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+
+  body.print-executive #city-leitos-table th,
+  body.print-executive #city-leitos-table td {
+    padding: 3px 4px !important;
+    line-height: 1.12 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  body.print-executive #city-leitos-table th:first-child,
+  body.print-executive #city-leitos-table td:first-child {
+    width: 32% !important;
+  }
+
+  body.print-executive #city-leitos-table th:nth-child(2),
+  body.print-executive #city-leitos-table td:nth-child(2) {
+    width: 18% !important;
+  }
+
+  body.print-executive .foot {
+    display: none !important;
+  }
+}
