@@ -1522,6 +1522,40 @@ body.print-executive .card:has(canvas#city-bubble) {
   margin-bottom: 3mm !important;
 }
 
+/* ===== PDF executivo: devolver tamanho original do benchmark regional ===== */
+
+body.print-executive .card:has(canvas#city-bubble) {
+  display: block !important;
+  margin-bottom: 5mm !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
+  height: 85mm !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body.print-executive .card:has(canvas#city-bubble) canvas,
+body.print-executive .card:has(canvas#city-bubble) img.print-snapshot {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  object-fit: contain !important;
+}
+
+body.print-executive .card:has(canvas#city-bubble) h3 {
+  font-size: 13pt !important;
+  margin-bottom: 5px !important;
+}
+
+body.print-executive .card:has(canvas#city-bubble) .muted {
+  font-size: 8.2pt !important;
+  line-height: 1.2 !important;
+  margin-top: 3px !important;
+}
+  
   .foot {
     display: none !important;
   }
