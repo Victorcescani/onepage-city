@@ -1269,6 +1269,175 @@ body.print-executive #city-leitos-table th:nth-child(2),
 body.print-executive #city-leitos-table td:nth-child(2) {
   width: 18% !important;
 }
+
+/* ===== PDF executivo: contraste forte e fonte ampliada ===== */
+
+body.print-executive {
+  color: #000 !important;
+  font-size: 12pt !important;
+  line-height: 1.42 !important;
+}
+
+/* Cabeçalho */
+body.print-executive .hero {
+  border: 1.4px solid #111827 !important;
+  padding: 8mm !important;
+}
+
+body.print-executive #city-title {
+  color: #000 !important;
+  font-size: 23pt !important;
+}
+
+body.print-executive #city-sub,
+body.print-executive .sub,
+body.print-executive .muted {
+  color: #1f2937 !important;
+  font-size: 10pt !important;
+}
+
+/* Títulos de seção */
+body.print-executive .tab-panel::before {
+  color: #000 !important;
+  background: #e5e7eb !important;
+  border-left: 9px solid #000 !important;
+  border-bottom: 2px solid #000 !important;
+  font-size: 20pt !important;
+  padding: 8px 11px !important;
+}
+
+/* Cards e KPIs */
+body.print-executive .card,
+body.print-executive .kpi {
+  border: 1.2px solid #111827 !important;
+  box-shadow: none !important;
+}
+
+body.print-executive .card h3 {
+  color: #000 !important;
+  font-size: 14pt !important;
+  font-weight: 950 !important;
+}
+
+body.print-executive .kpi {
+  min-height: 58px !important;
+  padding: 8px 9px !important;
+}
+
+body.print-executive .kpi.big {
+  background: #0b1220 !important;
+  border-color: #0b1220 !important;
+  color: #fff !important;
+}
+
+body.print-executive .kpi .k-label {
+  color: #111827 !important;
+  font-size: 10pt !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.15px !important;
+}
+
+body.print-executive .kpi.big .k-label {
+  color: #fff !important;
+}
+
+body.print-executive .kpi .k-val {
+  color: #000 !important;
+  font-size: 18pt !important;
+  font-weight: 950 !important;
+}
+
+body.print-executive .kpi.big .k-val {
+  color: #fff !important;
+  font-size: 20pt !important;
+}
+
+body.print-executive .kpi .k-compare {
+  color: #111827 !important;
+  border-top: 1px solid #6b7280 !important;
+  font-size: 9.4pt !important;
+  line-height: 1.3 !important;
+}
+
+body.print-executive .kpi .k-compare strong {
+  color: #000 !important;
+}
+
+/* IQM */
+body.print-executive .iqm-score {
+  background: #0b1220 !important;
+}
+
+body.print-executive .iqm-val {
+  font-size: 42pt !important;
+}
+
+body.print-executive .iqm-tier,
+body.print-executive .iqm-scale,
+body.print-executive .iqm-refbox {
+  color: #fff !important;
+}
+
+body.print-executive .iqm-bar-row {
+  color: #000 !important;
+  font-size: 9.8pt !important;
+  grid-template-columns: 150px 1fr 60px 110px !important;
+}
+
+body.print-executive .iqm-bar-row .label,
+body.print-executive .iqm-bar-row .val,
+body.print-executive .iqm-bar-row .ref {
+  color: #000 !important;
+}
+
+body.print-executive .iqm-bar-row .track {
+  border: 1px solid #4b5563 !important;
+  background: #e5e7eb !important;
+}
+
+/* Tabelas */
+body.print-executive table.table,
+body.print-executive .table {
+  color: #000 !important;
+  font-size: 9.8pt !important;
+  border-collapse: collapse !important;
+}
+
+body.print-executive .table th {
+  background: #d1d5db !important;
+  color: #000 !important;
+  font-size: 9.3pt !important;
+  font-weight: 950 !important;
+}
+
+body.print-executive .table th,
+body.print-executive .table td {
+  border-bottom: 1px solid #6b7280 !important;
+  padding: 5px 6px !important;
+  line-height: 1.3 !important;
+}
+
+body.print-executive .table tfoot td {
+  background: #0b1220 !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+}
+
+/* Aumentar leitura da tabela de leitos por hospital */
+body.print-executive #city-leitos-table {
+  font-size: 9.4pt !important;
+}
+
+body.print-executive #city-leitos-table th,
+body.print-executive #city-leitos-table td {
+  padding: 5px 6px !important;
+  line-height: 1.28 !important;
+}
+
+/* Melhorar contraste dos gráficos congelados como imagem */
+body.print-executive img.print-snapshot {
+  filter: contrast(1.22) saturate(0.9) !important;
+}
   
   .foot {
     display: none !important;
