@@ -1560,3 +1560,96 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     display: none !important;
   }
 }
+
+/* ================= IQM 2025 ================= */
+
+.iqm-footer-line {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  column-gap: 14px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.iqm-2025-box {
+  height: 42px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #243b73;
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.iqm-2025-label {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.05;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.iqm-2025-value {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: right;
+}
+
+.iqm-2025-class {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: right;
+  opacity: 0.9;
+}
+
+.iqm-composition-note {
+  margin: 0;
+  font-size: 9.5px;
+  line-height: 1.22;
+  text-align: left;
+}
+
+/* Ajuste para PDF executivo */
+@media print {
+  .iqm-footer-line {
+    grid-template-columns: 175px 1fr;
+    column-gap: 10px;
+    margin-top: 4px;
+  }
+
+  .iqm-2025-box {
+    height: 36px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .iqm-2025-label {
+    font-size: 8.5px;
+  }
+
+  .iqm-2025-value {
+    font-size: 17px;
+  }
+
+  .iqm-2025-class {
+    font-size: 8.5px;
+  }
+
+  .iqm-composition-note {
+    font-size: 8.5px;
+    line-height: 1.15;
+  }
+}
