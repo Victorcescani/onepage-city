@@ -470,9 +470,55 @@ $$(".tab").forEach(t => t.addEventListener("click", () => {
  * Carrega 1x os dados de POA cidade + microrregião de POA usados como
  * comparativo nos cards de hab/leito e benef/leito.
  */
+
+function sumLeitosHospitais(hospitais = []) {
+  const totais = { existentes: 0, sus: 0, privados: 0 };
+
+  for (const h of hospitais || []) {
+    totais.existentes += Number(h.leitos_total || 0);
+    totais.sus += Number(h.leitos_sus_total || 0);
+    totais.privados += Number(h.leitos_privados_total || 0);
+  }
+
+  return totais;
+}
+
+function aggregateLeitosByCodFromMulti(leitosMulti, cod6) {
+  const target = String(cod6 || "").slice(0, 6);
+  if (!target) return null;
+
+  const hospitais = (leitosMulti?.hospitais || []).filter(h => {
+    return String(h.cod_ibge || "").slice(0, 6) === target;
+  });
+
+  if (!hospitais.length) return null;
+
+  return {
+    totais: sumLeitosHospitais(hospitais),
+    hospitais,
+  };
+}
+
+function hospitalCountFromLeitos(leitos) {
+  if (!leitos) return 0;
+  if (Array.isArray(leitos.hospitais)) return leitos.hospitais.length;
+  return Number(leitos.hospitaisCount || 0) || 0;
+}
+
+function hospitalCountForIQM(estabs, leitos) {
+  const cnesHosp = (estabs || []).filter(e => {
+    return e.estabelecimento_possui_atendimento_hospitalar === 1;
+  }).length;
+
+  if (cnesHosp > 0) return cnesHosp;
+
+  return hospitalCountFromLeitos(leitos);
+}
+
 let _poaRefCache = null;
 async function loadPOAReference() {
   if (_poaRefCache) return _poaRefCache;
+
   try {
     const loc = await getJSON(`${IBGE_LOC}/municipios/${POA_IBGE}`);
     const microId = loc.microrregiao.id;
@@ -481,7 +527,15 @@ async function loadPOAReference() {
     const microIds = microMun.map(m => String(m.id));
     const microCods6 = microIds.map(i => i.slice(0, 6)).join(",");
 
-    const [popPOA, popMicro, ansCityRaw, ansMicroRaw, leitosCityRaw, leitosCityMultiRaw, leitosMicro] = await Promise.all([
+    const [
+      popPOA,
+      popMicro,
+      ansCityRaw,
+      ansMicroRaw,
+      leitosCityRaw,
+      leitosCityMultiRaw,
+      leitosMicro
+    ] = await Promise.all([
       fetchPopByMunicipios([POA_IBGE]).catch(() => ({})),
       fetchPopByMunicipios(microIds).catch(() => ({})),
       getJSON(`${ANS}?uf=${ufSigla}&cod=${POA_CNES}`).catch(() => null),
@@ -495,25 +549,34 @@ async function loadPOAReference() {
     const ansMicro = ansMHOnly(ansMicroRaw);
     const cityPop = popPOA[POA_IBGE] || 0;
     const microPop = Object.values(popMicro).reduce((a, b) => a + (b || 0), 0);
-    const leitosCity = leitosCityRaw || leitosCityMultiRaw;
+
+    const leitosCityFromMicro = aggregateLeitosByCodFromMulti(leitosMicro, POA_CNES);
+    const leitosCity = leitosCityRaw?.totais
+      ? leitosCityRaw
+      : leitosCityMultiRaw?.totais
+        ? leitosCityMultiRaw
+        : leitosCityFromMicro;
 
     _poaRefCache = {
       city: {
         pop: cityPop,
         ansTotal: ansCity?.total || 0,
         leitosTotais: leitosCity?.totais || null,
+        hospitaisCount: hospitalCountFromLeitos(leitosCity),
       },
       micro: {
         microId,
         pop: microPop,
         ansTotal: ansMicro?.total || 0,
         leitosTotais: leitosMicro?.totais || null,
+        hospitaisCount: hospitalCountFromLeitos(leitosMicro),
       },
     };
   } catch (e) {
     console.warn("loadPOAReference falhou:", e);
     _poaRefCache = { city: null, micro: null };
   }
+
   return _poaRefCache;
 }
 
@@ -610,7 +673,51 @@ function totalMedicosFromPayload(data) {
     if (Number.isFinite(n) && n > 0) return n;
   }
 
-  return null;
+  const especialidades = Array.isArray(data.especialidades) ? data.especialidades : [];
+
+  const totalRow = especialidades.find(r => {
+    const label = String(r.especialidade || r.cbo || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+    return label.includes("TOTAL");
+  });
+
+  if (totalRow) {
+    const totalFromRow = Number(totalRow.medicos || totalRow.total || totalRow.quantidade || 0);
+    if (Number.isFinite(totalFromRow) && totalFromRow > 0) return totalFromRow;
+  }
+
+  // Fallback defensivo: se a API não trouxer campo total, usa a soma das
+  // especialidades como aproximação. O ideal é usar `total`, mas isto evita
+  // que POA/Caxias desapareçam quando o payload vier incompleto.
+  const approx = especialidades.reduce((sum, r) => {
+    return sum + Number(r.medicos || r.total || r.quantidade || 0);
+  }, 0);
+
+  return approx > 0 ? approx : null;
+}
+
+async function fetchMedicosByIbgeWithFallback(ibgeId) {
+  const id7 = String(ibgeId);
+  const id6 = id7.slice(0, 6);
+
+  const urls = [
+    `${MEDICOS}?ibge=${id7}`,
+    `${MEDICOS}?cod=${id6}`,
+    `${MEDICOS}?codigo_municipio=${id6}`,
+  ];
+
+  let best = null;
+
+  for (const url of urls) {
+    const data = await getJSON(url).catch(() => null);
+    if (!data) continue;
+    if (!best) best = data;
+    if (totalMedicosFromPayload(data)) return data;
+  }
+
+  return best;
 }
 
 function renderMedicosHabitantesKPI({
@@ -820,9 +927,9 @@ const ansCaxiasRef = ansMHOnly(ansCaxiasRawRef);
     showLoader("Carregando densidade médica (ElastiCNES)…");
     const [refPopByCity, medicosCity, medicosCaxias, medicosPOA] = await Promise.all([
       fetchPopByMunicipios([CAXIAS_IBGE, POA_IBGE]).catch(() => ({})),
-      getJSON(`${MEDICOS}?ibge=${String(ibgeId)}`).catch(() => null),
-      getJSON(`${MEDICOS}?ibge=${CAXIAS_IBGE}`).catch(() => null),
-      getJSON(`${MEDICOS}?ibge=${POA_IBGE}`).catch(() => null),
+      fetchMedicosByIbgeWithFallback(String(ibgeId)).catch(() => null),
+      fetchMedicosByIbgeWithFallback(CAXIAS_IBGE).catch(() => null),
+      fetchMedicosByIbgeWithFallback(POA_IBGE).catch(() => null),
     ]);
 
     // ======= RENDER =======
@@ -2509,15 +2616,26 @@ function pibRawValue(pib) {
   return Number(pib?.pib || 0);
 }
 
-function buildBubblePoint({ id, label, kind, pop, ansTotal, privados, pib }) {
+function buildBubblePoint({
+  id,
+  label,
+  kind,
+  pop,
+  ansTotal,
+  privados,
+  pib,
+  force = false
+}) {
   pop = Number(pop) || 0;
   ansTotal = Number(ansTotal) || 0;
   privados = Number(privados) || 0;
 
-  if (!pop || !privados) return null;
+  if (!pop) return null;
+  if (!ansTotal && !force) return null;
 
-  const x = ansTotal / privados;
-  const y = (ansTotal / pop) * 100;
+  const hasPrivateBeds = privados > 0;
+  const x = hasPrivateBeds ? ansTotal / privados : null;
+  const y = pop ? (ansTotal / pop) * 100 : 0;
   const pibValue = pibRawValue(pib);
 
   return {
@@ -2526,6 +2644,8 @@ function buildBubblePoint({ id, label, kind, pop, ansTotal, privados, pib }) {
     kind,
     x,
     y,
+    privados,
+    noPrivateBeds: !hasPrivateBeds,
     pib: pibValue,
     r: 8
   };
@@ -2580,6 +2700,7 @@ async function buildRegionalBubblePoints({
       ansTotal: ans?.total || 0,
       privados: privadosByCod6[cod6] || 0,
       pib: pibByCity[id],
+      force: id === String(cityIbge),
     });
 
     if (p) pointsById[id] = p;
@@ -2611,6 +2732,7 @@ const microAggPoint = buildBubblePoint({
   ansTotal: microAnsTotal,
   privados: microPrivadosTotal,
   pib: { pib: microPibTotal },
+  force: true,
 });
 
 if (microAggPoint) {
@@ -2625,6 +2747,7 @@ const currentPoint = buildBubblePoint({
   ansTotal: cityAns?.total || 0,
   privados: cityLeitos?.totais?.privados || privadosByCod6[cityCod6] || 0,
   pib: pibByCity[String(cityIbge)],
+  force: true,
 });
 
 if (currentPoint) {
@@ -2641,6 +2764,7 @@ if (currentPoint) {
     ansTotal: caxiasAns?.total || 0,
     privados: leitosCaxias?.totais?.privados || 0,
     pib: pibCaxias,
+    force: true,
   });
 
   if (caxiasPoint && !pointsById[CAXIAS_IBGE]) {
@@ -2655,6 +2779,7 @@ if (currentPoint) {
     ansTotal: poaRef?.city?.ansTotal || 0,
     privados: poaRef?.city?.leitosTotais?.privados || 0,
     pib: pibPOA,
+    force: true,
   });
 
   if (poaPoint && !pointsById[POA_IBGE]) {
@@ -2662,6 +2787,20 @@ if (currentPoint) {
   }
 
   const points = Object.values(pointsById);
+
+const finiteXValues = points
+  .map(p => Number(p.x))
+  .filter(v => Number.isFinite(v) && v >= 0);
+
+const maxFiniteX = finiteXValues.length ? Math.max(...finiteXValues) : 0;
+const noPrivateBedsX = maxFiniteX > 0 ? maxFiniteX * 1.18 : 1;
+
+for (const p of points) {
+  if (!Number.isFinite(Number(p.x))) {
+    p.x = noPrivateBedsX;
+    p.noPrivateBeds = true;
+  }
+}
 
 const pibValues = points
   .map(p => Number(p.pib || 0))
@@ -2708,9 +2847,7 @@ async function renderIQMandBubble(ctx) {
     estabsCity, popByCity, leitosMicro, poaRef,
   } = ctx;
 
-  const cityHospHospitalar = (estabsCity || []).filter(e =>
-    e.estabelecimento_possui_atendimento_hospitalar === 1
-  ).length;
+  const cityHospHospitalar = hospitalCountForIQM(estabsCity, cityLeitos);
 
   const cityMetrics = {
     coberturaPct: cityPop ? (cityAns?.total || 0) / cityPop : 0,
@@ -2744,9 +2881,7 @@ async function renderIQMandBubble(ctx) {
 
     const caxiasPop = caxiasPopObj[CAXIAS_IBGE] || 0;
     const caxiasAns = ansMHOnly(caxiasAnsRaw);
-    const caxiasHospHospitalar = (state.estabsCaxias || []).filter(e =>
-      e.estabelecimento_possui_atendimento_hospitalar === 1
-    ).length;
+    const caxiasHospHospitalar = hospitalCountForIQM(state.estabsCaxias, caxiasLeitos);
 
     caxiasMetrics = {
       coberturaPct: caxiasPop ? (caxiasAns?.total || 0) / caxiasPop : 0,
@@ -2770,9 +2905,7 @@ async function renderIQMandBubble(ctx) {
 
   try {
     const poaRendimento = await fetchRendimento(POA_IBGE).catch(() => []);
-    const poaEstabsHosp = state.estabsPOA.filter(e =>
-      e.estabelecimento_possui_atendimento_hospitalar === 1
-    ).length;
+    const poaEstabsHosp = hospitalCountForIQM(state.estabsPOA, poaRef?.city);
 
     const poaPop = poaRef?.city?.pop || 0;
     const poaAnsHistRaw = await getJSON(`${ANS}/history?uf=RS&cods=${POA_CNES}`).catch(() => ({ series: [] }));
@@ -2922,7 +3055,7 @@ function renderBubbleChart(points) {
 
   if (!points || !points.length) {
     canvas.parentElement.innerHTML =
-      `<p class="muted">Dados insuficientes para o benchmark regional. É necessário haver beneficiários ANS, leitos privados e PIB municipal.</p>`;
+      `<p class="muted">Dados insuficientes para o benchmark regional. É necessário haver população e beneficiários ANS para montar os pontos.</p>`;
     return;
   }
 
@@ -2957,11 +3090,13 @@ function renderBubbleChart(points) {
       label: p.label,
       kind: p.kind,
       pib: p.pib,
+      privados: p.privados,
+      noPrivateBeds: p.noPrivateBeds,
     })),
-    backgroundColor: points.map(p => colorFor(p.kind) + "cc"),
-    borderColor: points.map(p => colorFor(p.kind)),
+    backgroundColor: points.map(p => (p.noPrivateBeds && p.kind === "micro" ? "#6b7280" : colorFor(p.kind)) + "cc"),
+    borderColor: points.map(p => p.noPrivateBeds && p.kind === "micro" ? "#374151" : colorFor(p.kind)),
     borderWidth: points.map(p => p.kind === "micro" ? 1.5 : 2.8),
-    pointStyle: points.map(p => p.kind === "microAgg" ? "rect" : "circle"),
+    pointStyle: points.map(p => p.noPrivateBeds ? "triangle" : (p.kind === "microAgg" ? "rect" : "circle")),
   };
 
   state.charts[key] = new Chart(canvas, {
@@ -2983,7 +3118,7 @@ function renderBubbleChart(points) {
 
               return [
                 `${p.label} · ${labelForKind(p.kind)}`,
-                `Benef. por leito privado: ${fmt1(p.x)}`,
+                `Benef. por leito privado: ${p.noPrivateBeds ? "sem leitos privados detectados" : fmt1(p.x)}`,
                 `Cobertura ANS: ${fmt1(p.y)}%`,
                 `PIB usado no tamanho: ${pibMi ? "R$ " + fmt1(pibMi) + " mi" : "—"}`,
               ];
@@ -3073,7 +3208,7 @@ function renderBubbleChart(points) {
           const p = chart.data.datasets[0].data[i];
           if (!p) return;
 
-          if (p.kind === "micro" && chart.data.datasets[0].data.length > 12) return;
+          if (p.kind === "micro" && chart.data.datasets[0].data.length > 20) return;
 
           const pos = elem.tooltipPosition ? elem.tooltipPosition() : { x: elem.x, y: elem.y };
           const dy = (p.r || 6) + 3;
