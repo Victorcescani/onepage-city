@@ -354,7 +354,7 @@ function applyPrintAxisBoost(chart, on) {
       scale.ticks.color = "#000000";
       scale.ticks.font = {
         ...(typeof scale.ticks.font === "object" ? scale.ticks.font : {}),
-        size: 13,
+        size: 12,
         weight: "800",
       };
 
@@ -363,7 +363,7 @@ function applyPrintAxisBoost(chart, on) {
         scale.title.color = "#000000";
         scale.title.font = {
           ...(typeof scale.title.font === "object" ? scale.title.font : {}),
-          size: 14,
+          size: 13,
           weight: "900",
         };
       }
