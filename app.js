@@ -320,17 +320,101 @@ if (typeof Chart !== "undefined") {
   try { Chart.register(printValuesPlugin); } catch (e) { console.warn("printValues register falhou:", e); }
 }
 
+function applyPrintAxisBoost(chart, on) {
+  const scales = chart?.options?.scales || {};
+
+  const setOrDelete = (obj, key, value) => {
+    if (!obj) return;
+    if (value === undefined) delete obj[key];
+    else obj[key] = value;
+  };
+
+  if (on) {
+    if (!chart.$printAxisBackup) chart.$printAxisBackup = {};
+
+    for (const [axisKey, scale] of Object.entries(scales)) {
+      if (!scale) continue;
+
+      chart.$printAxisBackup[axisKey] = {
+        ticksColor: scale.ticks?.color,
+        ticksFont: scale.ticks?.font && typeof scale.ticks.font === "object"
+          ? { ...scale.ticks.font }
+          : scale.ticks?.font,
+        titleColor: scale.title?.color,
+        titleFont: scale.title?.font && typeof scale.title.font === "object"
+          ? { ...scale.title.font }
+          : scale.title?.font,
+        gridColor: scale.grid?.color,
+        gridLineWidth: scale.grid?.lineWidth,
+        borderColor: scale.border?.color,
+        borderWidth: scale.border?.width,
+      };
+
+      scale.ticks = scale.ticks || {};
+      scale.ticks.color = "#000000";
+      scale.ticks.font = {
+        ...(typeof scale.ticks.font === "object" ? scale.ticks.font : {}),
+        size: 13,
+        weight: "800",
+      };
+
+      scale.title = scale.title || {};
+      if (scale.title.display !== false) {
+        scale.title.color = "#000000";
+        scale.title.font = {
+          ...(typeof scale.title.font === "object" ? scale.title.font : {}),
+          size: 14,
+          weight: "900",
+        };
+      }
+
+      scale.grid = scale.grid || {};
+      scale.grid.color = "#6b7280";
+      scale.grid.lineWidth = 0.9;
+
+      scale.border = scale.border || {};
+      scale.border.color = "#000000";
+      scale.border.width = 1.3;
+    }
+
+    return;
+  }
+
+  if (!chart.$printAxisBackup) return;
+
+  for (const [axisKey, backup] of Object.entries(chart.$printAxisBackup)) {
+    const scale = scales[axisKey];
+    if (!scale) continue;
+
+    scale.ticks = scale.ticks || {};
+    scale.title = scale.title || {};
+    scale.grid = scale.grid || {};
+    scale.border = scale.border || {};
+
+    setOrDelete(scale.ticks, "color", backup.ticksColor);
+    setOrDelete(scale.ticks, "font", backup.ticksFont);
+    setOrDelete(scale.title, "color", backup.titleColor);
+    setOrDelete(scale.title, "font", backup.titleFont);
+    setOrDelete(scale.grid, "color", backup.gridColor);
+    setOrDelete(scale.grid, "lineWidth", backup.gridLineWidth);
+    setOrDelete(scale.border, "color", backup.borderColor);
+    setOrDelete(scale.border, "width", backup.borderWidth);
+  }
+
+  delete chart.$printAxisBackup;
+}
+
 function togglePrintValues(on) {
   for (const key in state.charts) {
     const chart = state.charts[key];
     if (!chart) continue;
+
     try {
+      applyPrintAxisBoost(chart, !!on);
+
       chart.options.plugins = chart.options.plugins || {};
       chart.options.plugins.printValues = { show: !!on };
-      // update("none") força um render síncrono sem animação. Isto é suficiente
-      // para o próximo toBase64Image capturar a versão correta. NÃO chamamos
-      // chart.draw() porque não é parte da API pública do Chart.js 4 e pode
-      // jogar exceção em algumas versões.
+
       chart.update("none");
     } catch (e) {
       console.warn(`togglePrintValues falhou para ${key}:`, e);
