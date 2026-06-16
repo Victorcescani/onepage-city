@@ -1563,363 +1563,12 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
 
 
 /* =========================================================
- * HOTFIX FINAL - IQM + impressão executiva
- * Mantém apenas uma camada de override no final do CSS.
+ * BLOCO FINAL LIMPO — IQM 2025, benchmark e impressão executiva
+ * Substitui TODOS os hotfixes antigos do final do style.css
  * ========================================================= */
 
-.iqm-card {
-  padding: 10px 12px;
-}
+/* ---------- IQM: layout online estável ---------- */
 
-.iqm-card h3 {
-  margin: 0 0 5px 0;
-  font-size: 13px;
-  line-height: 1.1;
-}
-
-.iqm-wrap {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  column-gap: 12px;
-  align-items: stretch;
-}
-
-.iqm-score {
-  height: 118px;
-  min-height: 118px;
-  padding: 10px 10px 8px;
-  border-radius: 10px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  overflow: hidden;
-}
-
-.iqm-val {
-  font-size: 56px;
-  line-height: 0.95;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-}
-
-.iqm-scale {
-  font-size: 12px;
-  line-height: 1;
-}
-
-.iqm-tier {
-  margin-top: 2px;
-  font-size: 10px;
-  padding: 4px 10px;
-}
-
-.iqm-refbox {
-  margin-top: 6px;
-  font-size: 10.5px;
-  line-height: 1.12;
-}
-
-.iqm-refbox span {
-  display: block;
-}
-
-.iqm-bars {
-  height: 118px;
-  min-height: 118px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1px 0;
-  margin: 0;
-}
-
-.iqm-bar-row {
-  display: grid;
-  grid-template-columns: 150px 1fr 58px 92px;
-  column-gap: 6px;
-  align-items: center;
-  min-height: 18px;
-}
-
-.iqm-bar-row .label {
-  font-size: 10px;
-  line-height: 1.05;
-}
-
-.iqm-bar-row .track {
-  height: 7px;
-  border-radius: 999px;
-}
-
-.iqm-bar-row .val {
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.iqm-bar-row .ref {
-  font-size: 8.5px;
-  line-height: 1.05;
-  text-align: right;
-}
-
-.iqm-footer-line {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  column-gap: 12px;
-  align-items: center;
-  margin-top: 3px;
-}
-
-.iqm-2025-box {
-  width: 100%;
-  height: 30px;
-  min-height: 30px;
-  padding: 3px 8px;
-  border-radius: 7px;
-  background: #243b73;
-  color: #ffffff;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 6px;
-  align-items: center;
-  overflow: hidden;
-}
-
-.iqm-2025-label {
-  grid-column: 1 / 2;
-  grid-row: 1 / 3;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1;
-  opacity: 0.9;
-  text-transform: uppercase;
-}
-
-.iqm-2025-value {
-  grid-column: 2 / 3;
-  grid-row: 1 / 2;
-  font-size: 17px;
-  font-weight: 900;
-  line-height: 1;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.iqm-2025-class {
-  grid-column: 2 / 3;
-  grid-row: 2 / 3;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1;
-  text-align: right;
-}
-
-.iqm-composition-note {
-  margin: 0;
-  font-size: 8.5px;
-  line-height: 1.08;
-  text-align: left;
-}
-
-@media print {
-  body.print-executive .iqm-card {
-    padding: 7px 8px !important;
-    margin-bottom: 3mm !important;
-    border: 0.8px solid #6b7280 !important;
-    border-radius: 6px !important;
-    overflow: hidden !important;
-  }
-
-  body.print-executive .iqm-card h3 {
-    margin: 0 0 3px 0 !important;
-    font-size: 10.5pt !important;
-    line-height: 1.05 !important;
-    color: #000 !important;
-  }
-
-  body.print-executive .iqm-wrap {
-    display: grid !important;
-    grid-template-columns: 130px 1fr !important;
-    column-gap: 8px !important;
-    align-items: stretch !important;
-  }
-
-  body.print-executive .iqm-score {
-    width: 130px !important;
-    height: 88px !important;
-    min-height: 88px !important;
-    padding: 6px 6px 5px !important;
-    border-radius: 6px !important;
-    background: #0b1220 !important;
-    color: #fff !important;
-    gap: 1px !important;
-    overflow: hidden !important;
-  }
-
-  body.print-executive .iqm-val {
-    display: block !important;
-    font-size: 30pt !important;
-    line-height: 0.9 !important;
-    color: #fff !important;
-    font-weight: 950 !important;
-  }
-
-  body.print-executive .iqm-scale {
-    display: block !important;
-    font-size: 7.5pt !important;
-    line-height: 1 !important;
-    color: rgba(255,255,255,0.85) !important;
-  }
-
-  body.print-executive .iqm-tier {
-    display: inline-block !important;
-    margin-top: 2px !important;
-    padding: 2px 7px !important;
-    font-size: 7.3pt !important;
-    line-height: 1 !important;
-    color: #fff !important;
-    background: rgba(255,255,255,0.16) !important;
-  }
-
-  body.print-executive .iqm-refbox {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1px !important;
-    margin-top: 4px !important;
-    font-size: 6.7pt !important;
-    line-height: 1.05 !important;
-    color: #fff !important;
-    text-align: center !important;
-  }
-
-  body.print-executive .iqm-refbox strong {
-    color: #fff !important;
-    font-size: 7.2pt !important;
-  }
-
-  body.print-executive .iqm-bars {
-    height: 88px !important;
-    min-height: 88px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  body.print-executive .iqm-bar-row {
-    display: grid !important;
-    grid-template-columns: 95px 1fr 42px 70px !important;
-    column-gap: 4px !important;
-    align-items: center !important;
-    min-height: 14px !important;
-    font-size: 7.1pt !important;
-    line-height: 1 !important;
-    color: #000 !important;
-  }
-
-  body.print-executive .iqm-bar-row .label {
-    font-size: 6.9pt !important;
-    line-height: 1 !important;
-    color: #000 !important;
-    font-weight: 800 !important;
-  }
-
-  body.print-executive .iqm-bar-row .track {
-    height: 5px !important;
-    border-radius: 999px !important;
-    border: 0.6px solid #6b7280 !important;
-    background: #eef1f5 !important;
-  }
-
-  body.print-executive .iqm-bar-row .val {
-    font-size: 7pt !important;
-    line-height: 1 !important;
-    color: #000 !important;
-    text-align: right !important;
-    white-space: nowrap !important;
-    font-weight: 900 !important;
-  }
-
-  body.print-executive .iqm-bar-row .ref {
-    font-size: 5.9pt !important;
-    line-height: 1 !important;
-    color: #111827 !important;
-    text-align: right !important;
-  }
-
-  body.print-executive .iqm-footer-line {
-    display: grid !important;
-    grid-template-columns: 130px 1fr !important;
-    column-gap: 8px !important;
-    align-items: center !important;
-    margin-top: 2px !important;
-  }
-
-  body.print-executive .iqm-2025-box {
-    width: 130px !important;
-    height: 21px !important;
-    min-height: 21px !important;
-    padding: 2px 5px !important;
-    border-radius: 4px !important;
-    background: #243b73 !important;
-    color: #fff !important;
-  }
-
-  body.print-executive .iqm-2025-label {
-    font-size: 5.7pt !important;
-    line-height: 1 !important;
-    color: #fff !important;
-  }
-
-  body.print-executive .iqm-2025-value {
-    font-size: 10.5pt !important;
-    line-height: 0.9 !important;
-    color: #fff !important;
-  }
-
-  body.print-executive .iqm-2025-class {
-    font-size: 5.7pt !important;
-    line-height: 1 !important;
-    color: #fff !important;
-  }
-
-  body.print-executive .iqm-composition-note {
-    margin: 0 !important;
-    font-size: 6.2pt !important;
-    line-height: 1.05 !important;
-    color: #111827 !important;
-  }
-
-  body.print-executive .card,
-  body.print-executive .kpi,
-  body.print-executive .hero {
-    border-width: 0.8px !important;
-    border-color: #6b7280 !important;
-    border-radius: 6px !important;
-  }
-
-  body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
-    height: 60mm !important;
-  }
-}
-
-/* =========================================================
- * CORREÇÃO FINAL - IQM 2025, benchmark regional e impressão
- * 15-06-2026
- * Este bloco deve permanecer no FINAL do arquivo para sobrescrever
- * os hotfixes anteriores sem precisar apagar manualmente regras antigas.
- * ========================================================= */
-
-/* ---------- IQM: layout de tela mais estável ---------- */
 .iqm-card {
   padding: 16px 18px 18px !important;
   overflow: visible !important;
@@ -1941,7 +1590,6 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
 
 .iqm-score {
   width: 100% !important;
-  height: auto !important;
   min-height: 140px !important;
   padding: 16px 14px !important;
   border-radius: 10px !important;
@@ -1972,7 +1620,6 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
 }
 
 .iqm-bars {
-  height: auto !important;
   min-height: 140px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -2011,7 +1658,6 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
   white-space: normal !important;
 }
 
-/* IQM 2025 deixa de parecer uma segunda caixa principal; vira referência discreta */
 .iqm-footer-line {
   display: grid !important;
   grid-template-columns: 220px minmax(0, 1fr) !important;
@@ -2022,7 +1668,6 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
 
 .iqm-2025-box {
   width: 100% !important;
-  height: auto !important;
   min-height: 44px !important;
   padding: 8px 10px !important;
   border-radius: 8px !important;
@@ -2079,7 +1724,6 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
   align-self: center !important;
 }
 
-/* Benchmark regional em tela: voltar a ter presença visual */
 .card:has(canvas#city-bubble) .chart-wrap {
   height: 380px !important;
   width: 100% !important;
@@ -2103,7 +1747,9 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
 }
 
 /* ---------- Impressão executiva consolidada ---------- */
+
 @media print {
+
   body.print-executive {
     color: #000 !important;
     font-size: 10.5pt !important;
@@ -2152,144 +1798,206 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     color: #111827 !important;
   }
 
-  /* IQM impresso: score, barras e IQM 2025 sem sobreposição */
+  /* IQM impresso com proporção parecida com a tela */
   body.print-executive .iqm-card {
-    padding: 6px 8px !important;
-    margin-bottom: 3.5mm !important;
+    padding: 8px 10px 9px !important;
+    margin-bottom: 4mm !important;
     overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
   body.print-executive .iqm-card h3 {
-    font-size: 10.4pt !important;
-    margin-bottom: 4px !important;
+    font-size: 12.8pt !important;
+    line-height: 1.1 !important;
+    margin: 0 0 6px 0 !important;
+    font-weight: 950 !important;
   }
 
   body.print-executive .iqm-wrap {
-    grid-template-columns: 125px minmax(0, 1fr) !important;
-    column-gap: 7px !important;
+    display: grid !important;
+    grid-template-columns: 160px minmax(0, 1fr) !important;
+    column-gap: 18px !important;
     align-items: stretch !important;
+    width: 100% !important;
   }
 
   body.print-executive .iqm-score {
-    width: 125px !important;
-    min-height: 88px !important;
-    height: 88px !important;
-    padding: 6px 6px 5px !important;
-    border-radius: 6px !important;
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    height: 124px !important;
+    min-height: 124px !important;
+    padding: 8px 7px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
     background: #0b1220 !important;
     color: #fff !important;
     overflow: hidden !important;
   }
 
   body.print-executive .iqm-val {
-    font-size: 30pt !important;
+    font-size: 36pt !important;
     line-height: 0.9 !important;
+    margin: 0 !important;
     color: #fff !important;
   }
 
   body.print-executive .iqm-scale {
-    font-size: 7.3pt !important;
+    font-size: 9.5pt !important;
+    line-height: 1 !important;
+    margin-top: 2px !important;
     color: rgba(255,255,255,0.9) !important;
   }
 
   body.print-executive .iqm-tier {
-    margin-top: 2px !important;
-    padding: 2px 7px !important;
-    font-size: 7.2pt !important;
+    font-size: 8.8pt !important;
+    line-height: 1 !important;
+    padding: 3px 8px !important;
+    margin-top: 5px !important;
     color: #fff !important;
   }
 
   body.print-executive .iqm-refbox {
-    margin-top: 4px !important;
-    font-size: 6.8pt !important;
-    line-height: 1.05 !important;
+    font-size: 7.7pt !important;
+    line-height: 1.15 !important;
+    margin-top: 6px !important;
+    text-align: center !important;
     color: #fff !important;
   }
 
   body.print-executive .iqm-refbox strong {
-    font-size: 7.1pt !important;
     color: #fff !important;
   }
 
   body.print-executive .iqm-bars {
-    height: 88px !important;
-    min-height: 88px !important;
-    gap: 0 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
     justify-content: space-between !important;
+    gap: 0 !important;
+    min-height: 124px !important;
   }
 
   body.print-executive .iqm-bar-row {
-    grid-template-columns: 92px minmax(90px, 1fr) 42px 78px !important;
-    column-gap: 4px !important;
-    min-height: 13.5px !important;
-    font-size: 6.9pt !important;
+    display: grid !important;
+    grid-template-columns: 155px minmax(0, 1fr) 58px 116px !important;
+    column-gap: 8px !important;
+    align-items: center !important;
+    min-height: 20px !important;
+    font-size: 8.6pt !important;
+    line-height: 1.1 !important;
   }
 
   body.print-executive .iqm-bar-row .label {
-    font-size: 6.8pt !important;
-    line-height: 1 !important;
+    font-size: 8.6pt !important;
+    font-weight: 850 !important;
+    line-height: 1.08 !important;
     color: #000 !important;
-    font-weight: 800 !important;
+    max-width: 155px !important;
+    overflow: visible !important;
   }
 
   body.print-executive .iqm-bar-row .track {
-    height: 5px !important;
-    border: 0.5px solid #6b7280 !important;
+    height: 10px !important;
+    border-radius: 999px !important;
+    border: 1px solid #111827 !important;
     background: #eef1f5 !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+  }
+
+  body.print-executive .iqm-bar-row .fill {
+    height: 10px !important;
   }
 
   body.print-executive .iqm-bar-row .val {
-    font-size: 6.9pt !important;
+    font-size: 8.8pt !important;
+    font-weight: 950 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
     color: #000 !important;
-    font-weight: 900 !important;
   }
 
   body.print-executive .iqm-bar-row .ref {
-    font-size: 5.8pt !important;
-    color: #111827 !important;
-    line-height: 1 !important;
+    font-size: 7.3pt !important;
+    line-height: 1.08 !important;
+    text-align: right !important;
+    color: #000 !important;
   }
 
   body.print-executive .iqm-footer-line {
-    grid-template-columns: 125px minmax(0, 1fr) !important;
-    column-gap: 7px !important;
-    margin-top: 3px !important;
+    display: grid !important;
+    grid-template-columns: 160px minmax(0, 1fr) !important;
+    column-gap: 18px !important;
     align-items: center !important;
+    margin-top: 6px !important;
+    width: 100% !important;
   }
 
   body.print-executive .iqm-2025-box {
-    width: 125px !important;
-    min-height: 23px !important;
-    height: 23px !important;
-    padding: 2px 5px !important;
-    border-radius: 4px !important;
-    background: #f3f6fb !important;
-    border: 0.7px solid #6b7280 !important;
-    color: #000 !important;
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "label value"
+      "class value" !important;
+    align-items: center !important;
+    column-gap: 6px !important;
+    row-gap: 0 !important;
+    min-height: 34px !important;
+    padding: 5px 6px !important;
+    border-radius: 6px !important;
+    background: #0b1220 !important;
+    color: #fff !important;
+    overflow: hidden !important;
   }
 
   body.print-executive .iqm-2025-label {
-    font-size: 5.9pt !important;
-    color: #000 !important;
+    grid-area: label !important;
+    font-size: 7.4pt !important;
+    line-height: 1 !important;
+    font-weight: 850 !important;
+    color: #fff !important;
+    white-space: nowrap !important;
   }
 
   body.print-executive .iqm-2025-value {
-    font-size: 10.5pt !important;
-    color: #000 !important;
+    grid-area: value !important;
+    font-size: 15pt !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    color: #fff !important;
+    text-align: right !important;
+    white-space: nowrap !important;
   }
 
   body.print-executive .iqm-2025-class {
-    font-size: 5.9pt !important;
-    color: #000 !important;
+    grid-area: class !important;
+    font-size: 7.2pt !important;
+    line-height: 1 !important;
+    font-weight: 750 !important;
+    color: #fff !important;
+    text-align: left !important;
+    white-space: nowrap !important;
   }
 
-  body.print-executive .iqm-composition-note {
-    font-size: 6.3pt !important;
-    line-height: 1.08 !important;
+  body.print-executive .iqm-composition-note,
+  body.print-executive .iqm-card .muted {
+    font-size: 7.7pt !important;
+    line-height: 1.18 !important;
+    margin: 0 !important;
     color: #111827 !important;
   }
 
-  /* Benchmark regional: recuperar tamanho e importância visual */
+  /* Benchmark regional */
   body.print-executive .card:has(canvas#city-bubble) {
     display: block !important;
     margin-bottom: 4mm !important;
@@ -2298,7 +2006,7 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
   }
 
   body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
-    height: 82mm !important;
+    height: 76mm !important;
     width: 100% !important;
     max-width: 100% !important;
   }
@@ -2317,7 +2025,7 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     margin-top: 2px !important;
   }
 
-  /* KPIs mais compactos, mas ainda legíveis */
+  /* KPIs compactos e legíveis */
   body.print-executive .kpis {
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
@@ -2381,7 +2089,25 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
     color: #000 !important;
   }
 
-  /* CIDADE mantém página própria; perfil fica fora; leitos por hospital fica dentro */
+  /* Evolução dos leitos privados na base da página */
+  body.print-executive .card:has(canvas#micro-leitos-priv-evol) {
+    display: block !important;
+    margin-bottom: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.print-executive .card:has(canvas#micro-leitos-priv-evol) .chart-wrap {
+    height: 48mm !important;
+  }
+
+  body.print-executive .card:has(canvas#micro-leitos-priv-evol) .muted {
+    font-size: 6.4pt !important;
+    line-height: 1.05 !important;
+    margin-top: 1px !important;
+  }
+
+  /* CIDADE mantém página própria; perfil fora; leitos por hospital dentro */
   body.print-executive .tab-panel[data-panel="cidade"],
   body.print-executive .tab-panel[data-panel="city"] {
     display: flex !important;
@@ -2447,481 +2173,5 @@ body.print-executive .card:has(canvas#city-bubble) .muted {
 
   body.print-executive .foot {
     display: none !important;
-  }
-}
-
-/* ===== HOTFIX 16-06: IQM mais legível na impressão executiva =====
-   Objetivo: aumentar apenas o bloco do IQM no PDF, sem alterar a tela.
-   Mantém a primeira página fechando com o gráfico de evolução dos leitos privados. */
-@media print {
-  body.print-executive .iqm-card {
-    padding: 7px 9px 8px !important;
-    margin-bottom: 3mm !important;
-    min-height: 34mm !important;
-  }
-
-  body.print-executive .iqm-card h3 {
-    font-size: 9.4pt !important;
-    line-height: 1.1 !important;
-    margin-bottom: 5px !important;
-  }
-
-  body.print-executive .iqm-wrap {
-    display: grid !important;
-    grid-template-columns: 150px 1fr !important;
-    gap: 7px !important;
-    align-items: stretch !important;
-  }
-
-  body.print-executive .iqm-score {
-    min-height: 25mm !important;
-    padding: 6px !important;
-  }
-
-  body.print-executive .iqm-val {
-    font-size: 29pt !important;
-    line-height: 0.95 !important;
-  }
-
-  body.print-executive .iqm-scale {
-    font-size: 7.2pt !important;
-    line-height: 1 !important;
-  }
-
-  body.print-executive .iqm-tier {
-    font-size: 7.2pt !important;
-    line-height: 1 !important;
-    padding: 2px 7px !important;
-    margin-top: 3px !important;
-  }
-
-  body.print-executive .iqm-refbox {
-    font-size: 6.2pt !important;
-    line-height: 1.05 !important;
-    gap: 1px !important;
-    margin-top: 4px !important;
-  }
-
-  body.print-executive .iqm-refbox strong {
-    font-size: 6.6pt !important;
-  }
-
-  body.print-executive .iqm-bars {
-    gap: 3.2px !important;
-  }
-
-  body.print-executive .iqm-bar-row {
-    grid-template-columns: 110px 1fr 44px 78px !important;
-    gap: 4px !important;
-    font-size: 7.1pt !important;
-    line-height: 1.05 !important;
-    min-height: 4.5mm !important;
-  }
-
-  body.print-executive .iqm-bar-row .track {
-    height: 2.6mm !important;
-  }
-
-  body.print-executive .iqm-bar-row .label {
-    font-size: 7.1pt !important;
-    line-height: 1.05 !important;
-  }
-
-  body.print-executive .iqm-bar-row .val {
-    font-size: 7.1pt !important;
-    line-height: 1.05 !important;
-  }
-
-  body.print-executive .iqm-bar-row .ref {
-    font-size: 6.2pt !important;
-    line-height: 1.05 !important;
-  }
-
-  body.print-executive .iqm-footer-line {
-    display: grid !important;
-    grid-template-columns: 120px 1fr !important;
-    gap: 6px !important;
-    align-items: center !important;
-    margin-top: 4px !important;
-  }
-
-  body.print-executive .iqm-2025-box {
-    min-height: 8mm !important;
-    padding: 2px 5px !important;
-  }
-
-  body.print-executive .iqm-2025-label {
-    font-size: 6.2pt !important;
-    line-height: 1 !important;
-  }
-
-  body.print-executive .iqm-2025-value {
-    font-size: 11.5pt !important;
-    line-height: 1 !important;
-  }
-
-  body.print-executive .iqm-2025-class {
-    font-size: 6pt !important;
-    line-height: 1 !important;
-  }
-
-  body.print-executive .iqm-composition-note {
-    font-size: 6.6pt !important;
-    line-height: 1.12 !important;
-    margin: 0 !important;
-  }
-
-  /* Compensação suave para manter tudo em uma página */
-  body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
-    height: 78mm !important;
-  }
-
-  body.print-executive .card:has(canvas#micro-leitos-priv-evol) .chart-wrap {
-    height: 47mm !important;
-  }
-
-  body.print-executive .card:has(canvas#micro-leitos-priv-evol) {
-    margin-bottom: 0 !important;
-  }
-
-  body.print-executive .card:has(canvas#micro-leitos-priv-evol) .muted {
-    font-size: 6.4pt !important;
-    line-height: 1.05 !important;
-    margin-top: 1px !important;
-  }
-}
-
-/* =========================================================
- * HOTFIX 16-06-26 — PDF executivo: IQM maior e mais legível
- * Mantém a visualização online inalterada.
- * Objetivo: ampliar o bloco do IQM e usar o espaço livre da página 1,
- * sem jogar a evolução de leitos privados para a página 2.
- * ========================================================= */
-@media print {
-  body.print-executive .iqm-card {
-    padding: 7px 9px 8px !important;
-    margin-bottom: 4mm !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  body.print-executive .iqm-card h3 {
-    font-size: 10.2pt !important;
-    line-height: 1.12 !important;
-    margin: 0 0 5px !important;
-    font-weight: 950 !important;
-  }
-
-  body.print-executive .iqm-wrap {
-    grid-template-columns: 138px 1fr !important;
-    gap: 9px !important;
-    align-items: stretch !important;
-  }
-
-  body.print-executive .iqm-score {
-    min-height: 37mm !important;
-    padding: 7px 6px !important;
-    border-radius: 7px !important;
-    justify-content: center !important;
-  }
-
-  body.print-executive .iqm-val {
-    font-size: 34pt !important;
-    line-height: 0.92 !important;
-  }
-
-  body.print-executive .iqm-scale {
-    font-size: 7.8pt !important;
-    line-height: 1.05 !important;
-  }
-
-  body.print-executive .iqm-tier {
-    font-size: 7.9pt !important;
-    line-height: 1.05 !important;
-    padding: 2px 8px !important;
-    margin-top: 2px !important;
-  }
-
-  body.print-executive .iqm-refbox {
-    font-size: 7.4pt !important;
-    line-height: 1.12 !important;
-    gap: 1px !important;
-    margin-top: 4px !important;
-  }
-
-  body.print-executive .iqm-refbox strong {
-    font-size: 7.8pt !important;
-  }
-
-  body.print-executive .iqm-bars {
-    gap: 3.6px !important;
-    justify-content: center !important;
-  }
-
-  body.print-executive .iqm-bar-row {
-    grid-template-columns: 128px 1fr 50px 92px !important;
-    gap: 5px !important;
-    min-height: 6.2mm !important;
-    font-size: 8.4pt !important;
-    line-height: 1.08 !important;
-    align-items: center !important;
-  }
-
-  body.print-executive .iqm-bar-row .label {
-    font-size: 8.3pt !important;
-    line-height: 1.08 !important;
-    font-weight: 900 !important;
-  }
-
-  body.print-executive .iqm-bar-row .track {
-    height: 3.2mm !important;
-    border: 0.8px solid #111827 !important;
-  }
-
-  body.print-executive .iqm-bar-row .val {
-    font-size: 8.4pt !important;
-    line-height: 1.08 !important;
-    font-weight: 950 !important;
-  }
-
-  body.print-executive .iqm-bar-row .ref {
-    font-size: 7.2pt !important;
-    line-height: 1.08 !important;
-  }
-
-  body.print-executive .iqm-footer-line {
-    grid-template-columns: 138px 1fr !important;
-    gap: 8px !important;
-    margin-top: 5px !important;
-    align-items: center !important;
-  }
-
-  body.print-executive .iqm-2025-box {
-    min-height: 11.5mm !important;
-    padding: 3px 6px !important;
-    border-radius: 5px !important;
-  }
-
-  body.print-executive .iqm-2025-label {
-    font-size: 7.1pt !important;
-    line-height: 1.05 !important;
-  }
-
-  body.print-executive .iqm-2025-value {
-    font-size: 14pt !important;
-    line-height: 0.95 !important;
-  }
-
-  body.print-executive .iqm-2025-class {
-    font-size: 7.1pt !important;
-    line-height: 1.05 !important;
-  }
-
-  body.print-executive .iqm-composition-note {
-    font-size: 7.35pt !important;
-    line-height: 1.16 !important;
-    margin: 0 !important;
-  }
-
-  /* A página 1 ainda tinha sobra inferior; portanto mantemos os gráficos
-     em bom tamanho e só compactamos margens verticais. */
-  body.print-executive .card:has(canvas#city-bubble) {
-    margin-bottom: 4mm !important;
-  }
-
-  body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
-    height: 76mm !important;
-  }
-
-  body.print-executive .card:has(canvas#micro-leitos-priv-evol) {
-    margin-bottom: 0 !important;
-  }
-
-  body.print-executive .card:has(canvas#micro-leitos-priv-evol) .chart-wrap {
-    height: 50mm !important;
-  }
-}
-
-/* =========================================================
- * HOTFIX PRINT EXECUTIVE — IQM proporcional com IQM 2025
- * Mantém visual online inalterado
- * ========================================================= */
-
-@media print {
-
-  body.print-executive .iqm-card {
-    padding: 7px 9px 8px !important;
-    margin-bottom: 4mm !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  body.print-executive .iqm-card h3 {
-    font-size: 12.8pt !important;
-    line-height: 1.1 !important;
-    margin: 0 0 5px 0 !important;
-    font-weight: 950 !important;
-  }
-
-  body.print-executive .iqm-wrap {
-    display: grid !important;
-    grid-template-columns: 102px 1fr !important;
-    gap: 9px !important;
-    align-items: stretch !important;
-  }
-
-  body.print-executive .iqm-score {
-    min-height: 122px !important;
-    height: 122px !important;
-    padding: 7px 6px !important;
-    border-radius: 8px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-  }
-
-  body.print-executive .iqm-val {
-    font-size: 36pt !important;
-    line-height: 0.9 !important;
-    margin: 0 !important;
-  }
-
-  body.print-executive .iqm-scale {
-    font-size: 9.5pt !important;
-    line-height: 1 !important;
-    margin-top: 2px !important;
-  }
-
-  body.print-executive .iqm-tier {
-    font-size: 8.8pt !important;
-    line-height: 1 !important;
-    padding: 3px 8px !important;
-    margin-top: 5px !important;
-  }
-
-  body.print-executive .iqm-refbox {
-    font-size: 7.7pt !important;
-    line-height: 1.15 !important;
-    margin-top: 6px !important;
-    text-align: center !important;
-  }
-
-  body.print-executive .iqm-bars {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    gap: 0 !important;
-    min-height: 122px !important;
-  }
-
-  body.print-executive .iqm-bar-row {
-    display: grid !important;
-    grid-template-columns: 112px 1fr 56px 112px !important;
-    gap: 6px !important;
-    align-items: center !important;
-    min-height: 20px !important;
-    font-size: 8.6pt !important;
-    line-height: 1.1 !important;
-  }
-
-  body.print-executive .iqm-bar-row .label {
-    font-size: 8.6pt !important;
-    font-weight: 850 !important;
-    line-height: 1.08 !important;
-    color: #000 !important;
-  }
-
-  body.print-executive .iqm-bar-row .track {
-    height: 10px !important;
-    border-radius: 999px !important;
-    border: 1px solid #111827 !important;
-    overflow: hidden !important;
-  }
-
-  body.print-executive .iqm-bar-row .fill {
-    height: 10px !important;
-  }
-
-  body.print-executive .iqm-bar-row .val {
-    font-size: 8.8pt !important;
-    font-weight: 950 !important;
-    text-align: right !important;
-    white-space: nowrap !important;
-    color: #000 !important;
-  }
-
-  body.print-executive .iqm-bar-row .ref {
-    font-size: 7.3pt !important;
-    line-height: 1.08 !important;
-    text-align: right !important;
-    color: #000 !important;
-  }
-
-  body.print-executive .iqm-footer-line {
-    display: grid !important;
-    grid-template-columns: 102px 1fr !important;
-    gap: 9px !important;
-    align-items: center !important;
-    margin-top: 5px !important;
-  }
-
-  body.print-executive .iqm-2025-box {
-    display: grid !important;
-    grid-template-columns: 1fr auto !important;
-    grid-template-areas:
-      "label value"
-      "class value" !important;
-    align-items: center !important;
-    column-gap: 5px !important;
-    row-gap: 0 !important;
-    min-height: 32px !important;
-    padding: 4px 5px !important;
-    border-radius: 6px !important;
-    background: #0b1220 !important;
-    color: #fff !important;
-  }
-
-  body.print-executive .iqm-2025-label {
-    grid-area: label !important;
-    font-size: 7.2pt !important;
-    line-height: 1 !important;
-    font-weight: 850 !important;
-    color: #fff !important;
-  }
-
-  body.print-executive .iqm-2025-value {
-    grid-area: value !important;
-    font-size: 15pt !important;
-    line-height: 1 !important;
-    font-weight: 950 !important;
-    color: #fff !important;
-    text-align: right !important;
-  }
-
-  body.print-executive .iqm-2025-class {
-    grid-area: class !important;
-    font-size: 7.2pt !important;
-    line-height: 1 !important;
-    font-weight: 750 !important;
-    color: #fff !important;
-    text-align: left !important;
-  }
-
-  body.print-executive .iqm-composition-note,
-  body.print-executive .iqm-card .muted {
-    font-size: 7.5pt !important;
-    line-height: 1.18 !important;
-    margin: 0 !important;
-    color: #111827 !important;
-  }
-
-  /* Mantém a primeira folha respirando, sem perder o fechamento na base */
-  body.print-executive .card:has(canvas#city-bubble) .chart-wrap {
-    height: 60mm !important;
-  }
-
-  body.print-executive .card:has(canvas#micro-leitos-priv-evol) .chart-wrap {
-    height: 47mm !important;
   }
 }
