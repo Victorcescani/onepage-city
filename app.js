@@ -2307,32 +2307,64 @@ function renderLeitosCity(leitos, pop, beneficiariosMH) {
 function renderLeitosPrivEvolution(scope, series) {
   const key = `${scope}-leitos-priv-evol`;
   destroyChart(key);
+
   const canvas = $(`#${key}`);
   if (!canvas) return;
-  const card = canvas.closest(".card");
-  if (card) card.classList.remove("empty-history");
 
-  if (!series || series.length < 2) {
-    if (card) card.classList.add("empty-history");
-    canvas.parentElement.innerHTML =
-      `<p class="muted">Histórico anual indisponível para esta competência.</p>`;
+  const wrap = canvas.parentElement;
+  const card = canvas.closest(".card");
+
+  // Restaura o card antes de avaliar a nova cidade.
+  // Isso evita que uma cidade sem histórico deixe o card preso/escondido
+  // quando o usuário pesquisar outra cidade na mesma sessão.
+  if (card) {
+    card.classList.remove("empty-history");
+    card.hidden = false;
+  }
+
+  // Não remova o canvas do DOM. A versão anterior fazia innerHTML no
+  // chart-wrap quando não havia série; depois disso, o gráfico não conseguia
+  // ser renderizado novamente sem recarregar a página.
+  if (wrap) {
+    wrap.querySelectorAll(".history-empty-msg").forEach(node => node.remove());
+  }
+
+  canvas.style.display = "";
+
+  const validSeries = (series || [])
+    .filter(s => Number.isFinite(Number(s?.year)) && Number.isFinite(Number(s?.privados)))
+    .map(s => ({
+      year: Number(s.year),
+      privados: Number(s.privados),
+    }))
+    .sort((a, b) => a.year - b.year);
+
+  if (validSeries.length < 2) {
+    if (card) {
+      card.classList.add("empty-history");
+      card.hidden = true;
+    }
     return;
   }
-  const values = series.map(s => s.privados);
-const yScale = honestYScale(values, { forceZero: true });
-  
+
+  const values = validSeries.map(s => s.privados);
+  const yScale = honestYScale(values, { forceZero: true });
+
   state.charts[key] = new Chart(canvas, {
     type: "line",
     data: {
-      labels: series.map(s => String(s.year)),
+      labels: validSeries.map(s => String(s.year)),
       datasets: [
         {
           label: "Leitos privados",
-          data: series.map(s => s.privados),
+          data: validSeries.map(s => s.privados),
           borderColor: COLORS.brand,
           backgroundColor: "rgba(26,53,102,0.15)",
-          tension: 0.3, fill: true, pointRadius: 4,
-          pointBackgroundColor: COLORS.brand, borderWidth: 2.5,
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.brand,
+          borderWidth: 2.5,
         },
       ],
     },
@@ -2340,20 +2372,59 @@ const yScale = honestYScale(values, { forceZero: true });
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: c => `${fmt(c.parsed.y)} leitos privados` } },
+        tooltip: {
+          callbacks: {
+            label: c => `${fmt(c.parsed.y)} leitos privados`,
+          },
+        },
       },
       scales: {
-        x: { title: { display: true, text: "Ano" } },
+        x: {
+          title: {
+            display: true,
+            text: "Ano",
+            color: "#000000",
+            font: { size: 11, weight: "700" },
+          },
+          ticks: {
+            color: "#000000",
+            font: { size: 10, weight: "700" },
+          },
+          grid: {
+            color: "#9ca3af",
+            lineWidth: 0.7,
+          },
+          border: {
+            color: "#000000",
+            width: 1.1,
+          },
+        },
         y: {
-  ...yScale,
-  title: { display: true, text: "Leitos privados" },
-  ticks: { callback: v => fmt(v) },
-},
+          ...yScale,
+          title: {
+            display: true,
+            text: "Leitos privados",
+            color: "#000000",
+            font: { size: 11, weight: "700" },
+          },
+          ticks: {
+            color: "#000000",
+            font: { size: 10, weight: "700" },
+            callback: v => fmt(v),
+          },
+          grid: {
+            color: "#9ca3af",
+            lineWidth: 0.7,
+          },
+          border: {
+            color: "#000000",
+            width: 1.1,
+          },
+        },
       },
     },
   });
 }
-
 /* -- Infra -- */
 
 function renderInfraMap(estabs) {
