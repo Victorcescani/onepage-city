@@ -1050,8 +1050,8 @@ renderGenderPie("city", pyramidCity);
 renderPyramid("city", pyramidCity);
 renderEvolution("city", evolutionCity, pyramidCity);
 renderAnsEvolution("city", ansHistCity?.series || []);
-renderAnsKPIs("city", ansCity, cityPop);
-renderAnsKPIs("micro", ansMicro, Object.values(popByCity).reduce((a,b) => a + (b||0), 0));
+renderAnsKPIs("city", ansCity, cityPop, ansHistCity?.series || []);
+renderAnsKPIs("micro", ansMicro, Object.values(popByCity).reduce((a,b) => a + (b||0), 0), ansHistMicro?.series || []);
 renderOpsTable("city", ansCity);
 
 renderMedicalDensityTable({
@@ -1559,12 +1559,42 @@ function renderMicroKPIs(popByCity, pyramidMicro, ansMicro) {
   $("#micro-60").textContent = `${fmt(pop60)} (${pct(pop60, total)})`;
 }
 
-function renderAnsKPIs(scope, ansData, totalPop) {
+function yoyFromAnsSeries(series) {
+  if (!series || series.length < 2) return null;
+
+  const valid = series.filter(s => s && s.month && Number(s.total) > 0);
+  if (valid.length < 2) return null;
+
+  const last = valid[valid.length - 1];
+  const y = Number(String(last.month).slice(0, 4));
+  const m = String(last.month).slice(4, 6);
+  const prevYm = `${y - 1}${m}`;
+  const prev = valid.find(s => String(s.month) === prevYm);
+
+  if (!prev || !prev.total) return null;
+
+  return ((last.total / prev.total) - 1) * 100;
+}
+
+function fmtSignedPct(v, suffix = "%") {
+  if (v == null || Number.isNaN(v)) return "—";
+  const sign = v > 0 ? "+" : "";
+  return `${sign}${fmt1(v)}${suffix}`;
+}
+
+function renderAnsKPIs(scope, ansData, totalPop, ansSeries = []) {
   const prefix = scope === "city" ? "city" : "micro";
   const total = ansData?.total ?? 0;
+  const cagr = cagrFromAnsSeries(ansSeries);
+  const yoy = yoyFromAnsSeries(ansSeries);
+
   $(`#${prefix}-ans-total`).textContent = fmt(total);
-  $(`#${prefix}-ans-pct`).textContent = totalPop ? ((total / totalPop) * 100).toFixed(1) + "%" : "—";
+  $(`#${prefix}-ans-pct`).textContent = totalPop
+    ? ((total / totalPop) * 100).toFixed(1) + "%"
+    : "—";
   $(`#${prefix}-ops-count`).textContent = fmt((ansData?.operadoras ?? []).length);
+  $(`#${prefix}-ans-cagr`).textContent = fmtSignedPct(cagr, "% a.a.");
+  $(`#${prefix}-ans-yoy`).textContent = fmtSignedPct(yoy, "%");
   $(`#${prefix}-ans-month`).textContent = monthLabel(ansData?.month);
 }
 
