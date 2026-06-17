@@ -422,6 +422,62 @@ function togglePrintValues(on) {
   }
 }
 
+
+function toggleExecutiveOnlyCards(on) {
+  const cards = new Set();
+
+  document.querySelectorAll(".exec-hide").forEach(node => {
+    const card = node.closest?.(".card") || node;
+    cards.add(card);
+  });
+
+  [
+    "micro-leitos-priv-evol",
+    "city-leitos-priv-evol",
+    "micro-ans-evol",
+    "city-ans-evol"
+  ].forEach(id => {
+    const canvas = document.getElementById(id);
+    const card = canvas?.closest?.(".card");
+    if (card) cards.add(card);
+  });
+
+  cards.forEach(card => {
+    if (!card) return;
+
+    if (on) {
+      if (card.dataset.execDisplayBackup == null) {
+        card.dataset.execDisplayBackup = card.style.display || "";
+      }
+      card.dataset.execForceHidden = "1";
+      card.style.setProperty("display", "none", "important");
+      card.style.setProperty("visibility", "hidden", "important");
+      card.style.setProperty("height", "0", "important");
+      card.style.setProperty("margin", "0", "important");
+      card.style.setProperty("padding", "0", "important");
+      card.style.setProperty("border", "0", "important");
+      card.style.setProperty("overflow", "hidden", "important");
+      return;
+    }
+
+    if (card.dataset.execForceHidden === "1") {
+      const oldDisplay = card.dataset.execDisplayBackup || "";
+      card.style.removeProperty("visibility");
+      card.style.removeProperty("height");
+      card.style.removeProperty("margin");
+      card.style.removeProperty("padding");
+      card.style.removeProperty("border");
+      card.style.removeProperty("overflow");
+
+      if (oldDisplay) card.style.display = oldDisplay;
+      else card.style.removeProperty("display");
+
+      delete card.dataset.execForceHidden;
+      delete card.dataset.execDisplayBackup;
+    }
+  });
+}
+
 function snapshotAllCharts() {
   togglePrintValues(true);
   for (const key in state.charts) {
@@ -450,6 +506,7 @@ function snapshotAllCharts() {
 
 function restoreAllCharts() {
   try {
+    toggleExecutiveOnlyCards(false);
     document.body.classList.remove("printing", "print-executive", "print-detailed");
 
     document.querySelectorAll("img.print-snapshot").forEach(img => img.remove());
@@ -480,8 +537,10 @@ function runPrint(mode = "detailed") {
 
     if (mode === "executive") {
       document.body.classList.add("print-executive");
+      toggleExecutiveOnlyCards(true);
     } else {
       document.body.classList.add("print-detailed");
+      toggleExecutiveOnlyCards(false);
     }
 
     for (const k in state.maps) {
@@ -530,6 +589,10 @@ window.addEventListener("beforeprint", () => {
   if (!document.body.classList.contains("print-executive") &&
       !document.body.classList.contains("print-detailed")) {
     document.body.classList.add("print-detailed");
+  }
+
+  if (document.body.classList.contains("print-executive")) {
+    toggleExecutiveOnlyCards(true);
   }
 
   if (!document.querySelector("img.print-snapshot")) snapshotAllCharts();
