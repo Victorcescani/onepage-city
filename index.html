@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>One Page — Pesquisa de Cidades</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="style.css?v=59">
+<link rel="stylesheet" href="style.css?v=62">
 </head>
 <body>
 
@@ -168,12 +168,10 @@
         <p class="muted">Fonte: IBGE · Estimativas populacionais (agregado 6579).</p>
       </div>
 
-      <div class="kpis">
+      <div class="kpis kpis-3 ans-kpis">
         <div class="kpi"><span class="k-label">Beneficiários médico-hospitalar</span><span id="micro-ans-total" class="k-val">—</span></div>
         <div class="kpi"><span class="k-label">Cobertura sobre população</span><span id="micro-ans-pct" class="k-val">—</span></div>
         <div class="kpi"><span class="k-label">Operadoras ativas</span><span id="micro-ops-count" class="k-val">—</span></div>
-        <div class="kpi"><span class="k-label">CAGR de leitos privados</span><span id="micro-ans-cagr" class="k-val">—</span></div>
-        <div class="kpi"><span class="k-label">Leitos privados vs. ano anterior</span><span id="micro-ans-yoy" class="k-val">—</span></div>
       </div>
 
       <div class="card exec-hide">
@@ -242,21 +240,29 @@
         <div class="kpi"><span class="k-label">Total de hospitais</span><span id="micro-hosp-count" class="k-val">—</span></div>
       </div>
 
-      <div class="kpis kpis-3">
-        <div class="kpi">
+      <div class="kpis kpis-5 leitos-ratio-kpis">
+        <div class="kpi compact-kpi">
           <span class="k-label">Habitantes por leito total</span>
           <span id="micro-habxleito-tot" class="k-val">—</span>
           <span class="k-compare">Microrr. POA: <strong id="ref-micro-habxleito-tot">—</strong></span>
         </div>
-        <div class="kpi">
+        <div class="kpi compact-kpi">
           <span class="k-label">Habitantes por leito SUS</span>
           <span id="micro-habxleito-sus" class="k-val">—</span>
           <span class="k-compare">Microrr. POA: <strong id="ref-micro-habxleito-sus">—</strong></span>
         </div>
-        <div class="kpi">
+        <div class="kpi compact-kpi">
           <span class="k-label">Beneficiários por leito privado</span>
           <span id="micro-benefxleito-priv" class="k-val">—</span>
           <span class="k-compare">Microrr. POA: <strong id="ref-micro-benefxleito-priv">—</strong></span>
+        </div>
+        <div class="kpi compact-kpi">
+          <span class="k-label">CAGR de leitos privados</span>
+          <span id="micro-leitos-cagr" class="k-val">—</span>
+        </div>
+        <div class="kpi compact-kpi">
+          <span class="k-label">Leitos privados vs. ano anterior</span>
+          <span id="micro-leitos-yoy" class="k-val">—</span>
         </div>
       </div>
 
@@ -315,12 +321,10 @@
         <p class="muted">Fonte: IBGE · Censo 2010/2022 e estimativas anuais.</p>
       </div>
 
-      <div class="kpis">
+      <div class="kpis kpis-3 ans-kpis">
         <div class="kpi"><span class="k-label">Beneficiários médico-hospitalar</span><span id="city-ans-total" class="k-val">—</span></div>
         <div class="kpi"><span class="k-label">Cobertura sobre população</span><span id="city-ans-pct" class="k-val">—</span></div>
         <div class="kpi"><span class="k-label">Operadoras ativas</span><span id="city-ops-count" class="k-val">—</span></div>
-        <div class="kpi"><span class="k-label">CAGR de leitos privados</span><span id="city-ans-cagr" class="k-val">—</span></div>
-        <div class="kpi"><span class="k-label">Leitos privados vs. ano anterior</span><span id="city-ans-yoy" class="k-val">—</span></div>
       </div>
 
       <div class="card exec-hide">
@@ -416,23 +420,31 @@
         <div class="kpi"><span class="k-label">Total de hospitais</span><span id="city-hosp-count" class="k-val">—</span></div>
       </div>
 
-      <div class="kpis kpis-4">
-  <div class="kpi">
+      <div class="kpis kpis-6 leitos-ratio-kpis">
+  <div class="kpi compact-kpi">
     <span class="k-label">Hab./leito total</span>
     <span id="city-habxleito-tot" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-habxleito-tot">—</strong></span>
   </div>
-  <div class="kpi">
+  <div class="kpi compact-kpi">
     <span class="k-label">Hab./leito SUS</span>
     <span id="city-habxleito-sus" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-habxleito-sus">—</strong></span>
   </div>
-  <div class="kpi">
+  <div class="kpi compact-kpi">
     <span class="k-label">Benef./leito privado</span>
     <span id="city-benefxleito-priv" class="k-val">—</span>
     <span class="k-compare">POA: <strong id="ref-city-benefxleito-priv">—</strong></span>
   </div>
-  <div class="kpi">
+  <div class="kpi compact-kpi">
+    <span class="k-label">CAGR leitos privados</span>
+    <span id="city-leitos-cagr" class="k-val">—</span>
+  </div>
+  <div class="kpi compact-kpi">
+    <span class="k-label">Leitos priv. vs. ano anterior</span>
+    <span id="city-leitos-yoy" class="k-val">—</span>
+  </div>
+  <div class="kpi compact-kpi">
     <span class="k-label">Médicos / 10 mil hab. IBGE</span>
     <span id="city-medxbenef" class="k-val">—</span>
     <span class="k-compare">Caxias: <strong>—</strong> · POA: <strong id="ref-city-medxbenef">—</strong></span>
@@ -507,6 +519,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./iqm-2025.js?v=1"></script>
-<script src="app.js?v=61"></script>
+<script src="app.js?v=62"></script>
 </body>
 </html>
