@@ -2468,11 +2468,11 @@ function renderLeitosPrivEvolution(scope, series) {
             display: true,
             text: "Ano",
             color: "#000000",
-            font: { size: 11, weight: "700" },
+            font: { size: 13, weight: "800" },
           },
           ticks: {
             color: "#000000",
-            font: { size: 10, weight: "700" },
+            font: { size: 12, weight: "800" },
           },
           grid: {
             color: "#9ca3af",
@@ -2489,11 +2489,11 @@ function renderLeitosPrivEvolution(scope, series) {
             display: true,
             text: "Leitos privados",
             color: "#000000",
-            font: { size: 11, weight: "700" },
+            font: { size: 13, weight: "800" },
           },
           ticks: {
             color: "#000000",
-            font: { size: 10, weight: "700" },
+            font: { size: 12, weight: "800" },
             callback: v => fmt(v),
           },
           grid: {
@@ -3292,15 +3292,15 @@ function renderBubbleChart(points) {
             text: "Beneficiários médico-hospitalares por leito privado (maior = maior pressão)",
             color: "#000000",
             font: {
-              size: 12,
-              weight: "800"
+              size: 13,
+              weight: "900"
             }
           },
           ticks: {
             color: "#000000",
             font: {
-              size: 11,
-              weight: "700"
+              size: 12,
+              weight: "800"
             },
             callback: v => fmt(v)
           },
@@ -3320,15 +3320,15 @@ function renderBubbleChart(points) {
             text: "Taxa de cobertura de planos de saúde (% da população)",
             color: "#000000",
             font: {
-              size: 12,
-              weight: "800"
+              size: 13,
+              weight: "900"
             }
           },
           ticks: {
             color: "#000000",
             font: {
-              size: 11,
-              weight: "700"
+              size: 12,
+              weight: "800"
             },
             callback: v => `${fmt1(v)}%`
           },
@@ -3352,7 +3352,7 @@ function renderBubbleChart(points) {
         ctx.save();
 
         const isPrinting = document.body.classList.contains("printing");
-        ctx.font = `800 ${isPrinting ? 13 : 10.5}px -apple-system, 'Inter', Helvetica, Arial, sans-serif`;
+        ctx.font = `800 ${isPrinting ? 14 : 10.5}px -apple-system, 'Inter', Helvetica, Arial, sans-serif`;
         ctx.fillStyle = "#0b1220";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
