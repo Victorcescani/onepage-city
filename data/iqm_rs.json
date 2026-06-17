@@ -1,0 +1,24 @@
+[
+  {
+    "codigo_ibge": "4314902",
+    "municipio": "Porto Alegre",
+    "microrregiao": "Porto Alegre",
+    "populacao": 1332845,
+    "ano_populacao": 2024,
+    "pib_rs": 98123456000,
+    "ano_pib": 2021,
+    "cobertura_ans_pct": 52.4,
+    "competencia_ans": "202604",
+    "renda_ab_pct": 28.7,
+    "fonte_renda_ab": "Base One Page / proxy",
+    "medicos": 14500,
+    "densidade_medica_10k": 108.8,
+    "leitos_privados": 4200,
+    "densidade_leito_privado_10k": 31.5,
+    "operadora_lider": "UNIMED PORTO ALEGRE",
+    "beneficiarios_ans_total": 698000,
+    "concentracao_operadora_lider_pct": 34.2,
+    "fonte": "Base consolidada One Page",
+    "data_atualizacao": "2026-06-17"
+  }
+]
