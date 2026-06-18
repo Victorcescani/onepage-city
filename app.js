@@ -3168,6 +3168,10 @@ async function renderIQMandBubble(ctx) {
     };
 
     caxiasIQM = computeIQM(caxiasMetrics);
+    if (String(cityIbge) === CAXIAS_IBGE) {
+  caxiasMetrics = { ...cityMetrics };
+  caxiasIQM = cityIQM;
+}
   } catch (e) {
     console.warn("Falha ao calcular IQM Caxias:", e);
   }
@@ -3176,31 +3180,45 @@ async function renderIQMandBubble(ctx) {
   let poaMetrics = null;
 
   try {
-    const poaRendimento = await fetchRendimento(POA_IBGE).catch(() => []);
-    const poaEstabsHosp = hospitalCountForIQM(state.estabsPOA, poaRef?.city);
+  const [poaRendimento, poaCenso2010] = await Promise.all([
+    fetchRendimento(POA_IBGE).catch(() => []),
+    fetchCenso2010(POA_IBGE).catch(() => null),
+  ]);
 
-    const poaPop = poaRef?.city?.pop || 0;
-    const poaAnsHistRaw = await getJSON(`${ANS}/history?uf=RS&cods=${POA_CNES}`).catch(() => ({ series: [] }));
-    const poaCagr = cagrFromAnsSeries((poaAnsHistRaw?.series || []).map(s => ({ month: s.month, total: s.mh })));
+  const poaEstabsHosp = hospitalCountForIQM(state.estabsPOA, poaRef?.city);
 
-    poaMetrics = {
-      coberturaPct: poaPop ? (poaRef?.city?.ansTotal || 0) / poaPop : 0,
-      rendaAB: rendaABShare(poaRendimento),
-      cagrPop: 1.5,
-      hospPer100k: poaPop ? (poaEstabsHosp / poaPop) * 100000 : 0,
-      benefPerLeitoPriv: (poaRef?.city?.leitosTotais?.privados && poaRef?.city?.ansTotal)
-        ? poaRef.city.ansTotal / poaRef.city.leitosTotais.privados
-        : null,
-    };
+  const poaPop = poaRef?.city?.pop || 0;
+  const poaAnsHistRaw = await getJSON(`${ANS}/history?uf=RS&cods=${POA_CNES}`).catch(() => ({ series: [] }));
+  const poaCagr = cagrFromAnsSeries((poaAnsHistRaw?.series || []).map(s => ({ month: s.month, total: s.mh })));
 
-    poaIQM = computeIQM(poaMetrics);
-    poaMetrics._cagrAns = poaCagr;
-    poaMetrics._pop = poaPop;
-    poaMetrics._privados = poaRef?.city?.leitosTotais?.privados;
-    poaMetrics._ansTotal = poaRef?.city?.ansTotal;
-  } catch (e) {
-    console.warn("Falha ao calcular IQM POA:", e);
+  const poaCagrPop = (poaPop && poaCenso2010)
+    ? (Math.pow(poaPop / poaCenso2010, 1 / 12) - 1) * 100
+    : 0;
+
+  poaMetrics = {
+    coberturaPct: poaPop ? (poaRef?.city?.ansTotal || 0) / poaPop : 0,
+    rendaAB: rendaABShare(poaRendimento),
+    cagrPop: poaCagrPop,
+    hospPer100k: poaPop ? (poaEstabsHosp / poaPop) * 100000 : 0,
+    benefPerLeitoPriv: (poaRef?.city?.leitosTotais?.privados && poaRef?.city?.ansTotal)
+      ? poaRef.city.ansTotal / poaRef.city.leitosTotais.privados
+      : null,
+  };
+
+  poaIQM = computeIQM(poaMetrics);
+
+  if (String(cityIbge) === POA_IBGE) {
+    poaMetrics = { ...cityMetrics };
+    poaIQM = cityIQM;
   }
+
+  poaMetrics._cagrAns = poaCagr;
+  poaMetrics._pop = poaPop;
+  poaMetrics._privados = poaRef?.city?.leitosTotais?.privados;
+  poaMetrics._ansTotal = poaRef?.city?.ansTotal;
+} catch (e) {
+  console.warn("Falha ao calcular IQM POA:", e);
+}
 
   $("#city-iqm-value").textContent = String(cityIQM.total);
   $("#city-iqm-tier").textContent = tierIQM(cityIQM.total);
