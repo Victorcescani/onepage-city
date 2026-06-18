@@ -2859,14 +2859,42 @@ async function fetchAnsMHByMunicipios(uf, ids) {
 
 async function fetchPIBByMunicipios(ids) {
   const out = {};
+  const cleanIds = [...new Set((ids || []).map(id => String(id)).filter(Boolean))];
 
-  await mapInChunks(ids, 6, async (id) => {
+  // Busca o PIB total municipal em lote.
+  // É mais estável do que chamar o IBGE município por município.
+  const chunkSize = 80;
+
+  for (let i = 0; i < cleanIds.length; i += chunkSize) {
+    const chunk = cleanIds.slice(i, i + chunkSize);
+
     try {
-      out[String(id)] = await fetchPIB(String(id));
-    } catch {
-      out[String(id)] = null;
+      const url = `${IBGE_AGG}/5938/periodos/-1/variaveis/37?localidades=N6[${chunk.join(",")}]`;
+      const data = await getJSON(url);
+      const series = data?.[0]?.resultados?.[0]?.series || [];
+
+      for (const s of series) {
+        const id = String(s?.localidade?.id || "");
+        const serie = s?.serie || {};
+        const year = Object.keys(serie).sort().pop();
+        const val = year ? Number(serie[year]) : null;
+
+        if (id && Number.isFinite(val) && val > 0) {
+          out[id] = { year, pib: val };
+        }
+      }
+    } catch (e) {
+      console.warn("Falha ao buscar PIB municipal em lote. Tentando fallback individual.", e);
+
+      await mapInChunks(chunk, 4, async (id) => {
+        try {
+          out[String(id)] = await fetchPIB(String(id));
+        } catch {
+          out[String(id)] = null;
+        }
+      });
     }
-  });
+  }
 
   return out;
 }
@@ -3078,8 +3106,15 @@ const pibValues = points
   .map(p => Number(p.pib || 0))
   .filter(v => v > 0);
 
+const MIN_BUBBLE_R = 5.5;
+const MAX_BUBBLE_R = 30;
+const MISSING_PIB_R = 4.5;
+
 if (!pibValues.length) {
-  for (const p of points) p.r = 8;
+  for (const p of points) {
+    p.r = 8;
+    p.pibMissing = true;
+  }
 } else {
   const logs = pibValues.map(v => Math.log10(v));
   const minLogPib = Math.min(...logs);
@@ -3088,16 +3123,37 @@ if (!pibValues.length) {
   for (const p of points) {
     const pib = Number(p.pib || 0);
 
-    if (!pib || maxLogPib === minLogPib) {
-      p.r = 8;
+    if (!pib) {
+      p.r = MISSING_PIB_R;
+      p.pibMissing = true;
+      continue;
+    }
+
+    p.pibMissing = false;
+
+    if (maxLogPib === minLogPib) {
+      p.r = (MIN_BUBBLE_R + MAX_BUBBLE_R) / 2;
       continue;
     }
 
     const norm = (Math.log10(pib) - minLogPib) / (maxLogPib - minLogPib);
-    p.r = 5 + norm * 34;
+
+    // Escala perceptual: mantém PIB alto maior, mas sem criar bolhas enormes.
+    p.r = MIN_BUBBLE_R + Math.sqrt(Math.max(0, norm)) * (MAX_BUBBLE_R - MIN_BUBBLE_R);
   }
 }
 
+if (window.DEBUG_BUBBLE_PIB) {
+  console.table(points.map(p => ({
+    cidade: p.label,
+    tipo: p.kind,
+    pib: p.pib,
+    raio: Number(p.r.toFixed(1)),
+    cobertura: Number(p.y.toFixed(1)),
+    benef_por_leito_privado: Number(p.x.toFixed(1)),
+    pib_indisponivel: !!p.pibMissing
+  })));
+}
 const rank = {
   micro: 1,
   microAgg: 2,
@@ -3382,6 +3438,7 @@ function renderBubbleChart(points) {
       pib: p.pib,
       privados: p.privados,
       noPrivateBeds: p.noPrivateBeds,
+      pibMissing: p.pibMissing,
     })),
     backgroundColor: points.map(p => (p.noPrivateBeds && p.kind === "micro" ? "#6b7280" : colorFor(p.kind)) + "cc"),
     borderColor: points.map(p => p.noPrivateBeds && p.kind === "micro" ? "#374151" : colorFor(p.kind)),
@@ -3410,7 +3467,7 @@ function renderBubbleChart(points) {
                 `${p.label} · ${labelForKind(p.kind)}`,
                 `Benef. por leito privado: ${p.noPrivateBeds ? "sem leitos privados detectados" : fmt1(p.x)}`,
                 `Cobertura ANS: ${fmt1(p.y)}%`,
-                `PIB usado no tamanho: ${pibMi ? "R$ " + fmt1(pibMi) + " mi" : "—"}`,
+                `PIB usado no tamanho: ${pibMi ? "R$ " + fmt1(pibMi) + " mi" : "indisponível"}`,
               ];
             },
           },
