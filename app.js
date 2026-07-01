@@ -444,14 +444,26 @@ function renderTestModeBanner() {
     "VERSÃO TESTE — Base CNES de estabelecimentos temporariamente desligada para acelerar validação de layout. Indicadores de tipos/serviços e mapa CNES podem aparecer zerados.";
 }
 
-// Coleciona top N operadoras + uma linha "Outras" com soma do restante.
+// Coleciona top N operadoras, força a exibição de operadoras estratégicas
+// como BRADESCO, e soma o restante em "Outras".
 function topOpsWithOutras(ops, n = 5) {
-  if (!ops || ops.length <= n) return ops || [];
-  const top = ops.slice(0, n);
-  const rest = ops.slice(n);
+  const list = Array.isArray(ops) ? ops : [];
+  if (!list.length) return [];
+
+  const isForcedVisible = o => /BRADESCO/i.test(String(o?.razao || ""));
+
+  const top = list.slice(0, n);
+  const forced = list.slice(n).filter(isForcedVisible);
+  const rest = list.slice(n).filter(o => !isForcedVisible(o));
+
+  const rows = [...top, ...forced];
+
+  if (!rest.length) return rows;
+
   const outrasCount = rest.length;
   const outrasSum = rest.reduce((a, b) => a + (b.beneficiarios || 0), 0);
-  return [...top, {
+
+  return [...rows, {
     razao: `Outras (${outrasCount})`,
     modalidade: "—",
     beneficiarios: outrasSum,
