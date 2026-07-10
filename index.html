@@ -8,6 +8,7 @@
 <title>One Page — Pesquisa de Cidades</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="style.css?v=66">
+<link rel="stylesheet" href="onepage-ajustes.css?v=1">
 </head>
 <body>
 
@@ -32,7 +33,7 @@
   <section id="landing" class="landing">
     <h2>Dossiê estratégico de qualquer município brasileiro</h2>
     <p>Demografia (IBGE), rede de saúde (CNES) e saúde suplementar (ANS), estruturados em três abas:
-       <strong>Microrregião</strong>, <strong>Cidade</strong> e <strong>Infra da Cidade</strong>.</p>
+       <strong>Microrregião</strong>, <strong>Cidade</strong> e <strong>Hospitais</strong>.</p>
     <div class="examples">
   <span>Exemplos:</span>
 
@@ -113,7 +114,7 @@
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="micro" role="tab">Microrregião</button>
       <button class="tab" data-tab="cidade" role="tab">Cidade</button>
-      <button class="tab" data-tab="infra" role="tab">Infraestrutura</button>
+      <button class="tab" data-tab="infra" role="tab">Hospitais</button>
     </nav>
 
     <!-- ================= ABA 1: MICRORREGIÃO ================= -->
@@ -481,11 +482,9 @@
         <p class="muted">Fonte: IBGE · Censo 2022 (agregado 10292) — pessoas de 14+ ocupadas na semana de referência, por classes de rendimento em salários mínimos.</p>
       </div>
 
-
-
     </section>
 
-    <!-- ================= INFRAESTRUTURA ================= -->
+    <!-- ================= HOSPITAIS ================= -->
     <section class="tab-panel" data-panel="infra">
 
       <div class="card">
@@ -495,7 +494,6 @@
       </div>
 
       <div class="card">
-        <h3>Mapa — estabelecimentos de saúde</h3>
         <div id="infra-map" class="map"></div>
       </div>
 
@@ -520,5 +518,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./iqm-2025.js?v=1"></script>
 <script src="app.js?v=69"></script>
+<script src="onepage-ajustes.js?v=1"></script>
 </body>
 </html>
