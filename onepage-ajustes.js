@@ -1,21 +1,34 @@
 /* =========================================================
- * One Page — ajustes complementares
+ * One Page — ajustes complementares v3
  * Carregar depois de app.js.
  * ========================================================= */
 (() => {
   "use strict";
 
   const IBGE_AGG = "https://servicodados.ibge.gov.br/api/v3/agregados";
+  const IBGE_LOC = "https://servicodados.ibge.gov.br/api/v1/localidades";
+
+  const CAXIAS_IBGE = "4305108";
+  const POA_IBGE = "4314902";
+
   const RENDA_AB_KEYS = new Set(["99825", "99828", "96184"]); // >= 10 salários mínimos
   const RENDA_CLASS_IDS = [
     "99822", "99823", "99824", "96179", "96180", "96181",
     "96182", "99825", "99828", "96184", "96185"
   ];
 
-  let rendaRequestToken = 0;
-  let lastMicroKey = "";
+  const AGE_60_PLUS = new Set([
+    "93095", "93096", "93097", "93098", "49108",
+    "49109", "60040", "60041", "6653"
+  ]);
+
+  const AGE_60_PLUS_IDS = [...AGE_60_PLUS];
+
+  let metricsRequestToken = 0;
+  let lastMetricsKey = "";
   let refreshTimer = null;
   let hospitalTimer = null;
+  let referenceIdsPromise = null;
 
   const qs = (selector, root = document) => root.querySelector(selector);
 
@@ -35,11 +48,13 @@
       : "—";
   }
 
-  function parseBrazilianInteger(value) {
-    const firstPart = String(value || "").split("(")[0];
-    const digits = firstPart.replace(/[^0-9-]/g, "");
-    const parsed = Number(digits);
-    return Number.isFinite(parsed) ? parsed : null;
+  function formatPercent(value, digits = 1) {
+    return Number.isFinite(value)
+      ? `${(value * 100).toLocaleString("pt-BR", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        })}%`
+      : "—";
   }
 
   function parseTableNumber(value) {
@@ -48,8 +63,15 @@
       .replace(/\./g, "")
       .replace(",", ".")
       .replace(/[^0-9.-]/g, "");
+
     const parsed = Number(clean);
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  async function getJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status} em ${url}`);
+    return response.json();
   }
 
   function replaceStaticLabels() {
@@ -60,14 +82,12 @@
       if (/infra/i.test(node.textContent || "")) node.textContent = "Hospitais";
     });
 
-    // Remove o cabeçalho visual ligado ao mapa de estabelecimentos do CNES.
     const infraMap = document.getElementById("infra-map");
     const mapHeading = infraMap?.closest(".card")?.querySelector(":scope > h3");
     if (mapHeading && /estabelecimentos/i.test(mapHeading.textContent || "")) {
       mapHeading.remove();
     }
 
-    // O banner de modo de teste não deve aparecer na versão final.
     document.getElementById("test-mode-banner")?.remove();
   }
 
@@ -89,146 +109,367 @@
     return card;
   }
 
-  function ensureMicroStructure() {
-    const panel = qs('.tab-panel[data-panel="micro"]');
-    if (!panel) return;
+  function ensureCompareLine(card, id) {
+    if (!card || document.getElementById(id)) return;
 
-    const demographicGrid = document.getElementById("micro-total-pop")?.closest(".kpis");
-    const ansGrid = document.getElementById("micro-ans-total")?.closest(".kpis");
-
-    if (demographicGrid) {
-      demographicGrid.classList.add("micro-summary-kpis");
-
-      if (ansGrid && ansGrid !== demographicGrid) {
-        [...ansGrid.children].forEach(child => demographicGrid.appendChild(child));
-        ansGrid.remove();
-      }
-
-      if (!document.getElementById("micro-renda-ab-pct")) {
-        demographicGrid.appendChild(makeKpi(
-          "micro-renda-ab-pct",
-          "% população classe A+B",
-          "Proxy de renda: participação das pessoas ocupadas de 14 anos ou mais com rendimento de 10 salários mínimos ou mais, conforme o agregado 10292 do Censo 2022."
-        ));
-      }
-
-      if (!document.getElementById("micro-renda-ab-60")) {
-        demographicGrid.appendChild(makeKpi(
-          "micro-renda-ab-60",
-          "População A+B com 60 anos ou mais",
-          "Estimativa obtida aplicando a participação de renda A+B da microrregião à população de 60 anos ou mais. O Censo usado no painel não fornece diretamente o cruzamento idade x classe econômica."
-        ));
-      }
-    }
-
-    document.getElementById("micro-hosp-count")
-      ?.closest(".kpis")
-      ?.classList.add("micro-leitos-totals");
-
-    document.getElementById("micro-habxleito-tot")
-      ?.closest(".kpis")
-      ?.classList.add("micro-page1-end");
+    const compare = document.createElement("span");
+    compare.id = id;
+    compare.className = "k-compare";
+    compare.innerHTML = "Caxias: <strong>—</strong> · POA: <strong>—</strong>";
+    card.appendChild(compare);
   }
 
-  function getMicroMunicipalityIds() {
+  function ensureIncomeKpis(scope, grid) {
+    const pctId = `${scope}-renda-ab-pct`;
+    const pop60Id = `${scope}-renda-ab-60`;
+
+    if (!document.getElementById(pctId)) {
+      grid.appendChild(makeKpi(
+        pctId,
+        "% população classe A+B",
+        "Proxy de renda: participação das pessoas ocupadas de 14 anos ou mais com rendimento de 10 salários mínimos ou mais, conforme o agregado 10292 do Censo 2022."
+      ));
+    }
+
+    if (!document.getElementById(pop60Id)) {
+      grid.appendChild(makeKpi(
+        pop60Id,
+        "População A+B com 60 anos ou mais",
+        "Estimativa obtida aplicando a participação de renda A+B à população de 60 anos ou mais. O percentual entre parênteses representa esse segmento sobre a população total."
+      ));
+    }
+
+    ensureCompareLine(
+      document.getElementById(pctId)?.closest(".kpi"),
+      `${scope}-renda-ab-pct-compare`
+    );
+
+    ensureCompareLine(
+      document.getElementById(pop60Id)?.closest(".kpi"),
+      `${scope}-renda-ab-60-compare`
+    );
+  }
+
+  function ensureScopeStructure(scope) {
+    const isMicro = scope === "micro";
+    const summaryAnchorId = isMicro ? "micro-total-pop" : "city-pop";
+    const ansAnchorId = isMicro ? "micro-ans-total" : "city-ans-total";
+    const className = isMicro ? "micro-summary-kpis" : "city-summary-kpis";
+
+    const summaryGrid = document.getElementById(summaryAnchorId)?.closest(".kpis");
+    const ansGrid = document.getElementById(ansAnchorId)?.closest(".kpis");
+
+    if (!summaryGrid) return;
+
+    summaryGrid.classList.add("summary-kpis", className);
+
+    if (ansGrid && ansGrid !== summaryGrid) {
+      [...ansGrid.children].forEach(child => summaryGrid.appendChild(child));
+      ansGrid.remove();
+    }
+
+    ensureIncomeKpis(scope, summaryGrid);
+
+    if (isMicro) {
+      document.getElementById("micro-hosp-count")
+        ?.closest(".kpis")
+        ?.classList.add("micro-leitos-totals");
+
+      document.getElementById("micro-habxleito-tot")
+        ?.closest(".kpis")
+        ?.classList.add("micro-page1-end");
+    } else {
+      document.getElementById("city-hosp-count")
+        ?.closest(".kpis")
+        ?.classList.add("city-leitos-totals");
+
+      document.getElementById("city-habxleito-tot")
+        ?.closest(".kpis")
+        ?.classList.add("city-leitos-ratios");
+    }
+  }
+
+  function ensureStructures() {
+    ensureScopeStructure("micro");
+    ensureScopeStructure("city");
+  }
+
+  function getCurrentIds() {
     try {
-      if (typeof state !== "undefined" && Array.isArray(state?.micro?.municipios)) {
-        return state.micro.municipios
-          .map(item => String(item?.id || ""))
-          .filter(Boolean);
-      }
+      const cityId = typeof state !== "undefined"
+        ? String(state?.city?.id || "")
+        : "";
+
+      const microIds = typeof state !== "undefined" && Array.isArray(state?.micro?.municipios)
+        ? state.micro.municipios
+            .map(item => String(item?.id || ""))
+            .filter(Boolean)
+        : [];
+
+      return { cityId, microIds };
     } catch (error) {
-      console.warn("Não foi possível ler os municípios da microrregião:", error);
+      console.warn("Não foi possível ler os IDs atuais:", error);
+      return { cityId: "", microIds: [] };
     }
-    return [];
   }
 
-  async function fetchMicroIncome(ids) {
-    const locations = ids.join(",");
+  async function fetchMicroIdsForCity(cityId) {
+    const city = await getJSON(`${IBGE_LOC}/municipios/${cityId}`);
+    const microId = city?.microrregiao?.id;
+    if (!microId) return [];
+
+    const municipalities = await getJSON(`${IBGE_LOC}/microrregioes/${microId}/municipios`);
+    return (municipalities || [])
+      .map(item => String(item?.id || ""))
+      .filter(Boolean);
+  }
+
+  function loadReferenceIds() {
+    if (!referenceIdsPromise) {
+      referenceIdsPromise = Promise.all([
+        fetchMicroIdsForCity(CAXIAS_IBGE),
+        fetchMicroIdsForCity(POA_IBGE)
+      ]).then(([caxiasMicroIds, poaMicroIds]) => ({
+        caxiasCityIds: [CAXIAS_IBGE],
+        poaCityIds: [POA_IBGE],
+        caxiasMicroIds,
+        poaMicroIds
+      })).catch(error => {
+        console.warn("Falha ao carregar microrregiões de referência:", error);
+        return {
+          caxiasCityIds: [CAXIAS_IBGE],
+          poaCityIds: [POA_IBGE],
+          caxiasMicroIds: [CAXIAS_IBGE],
+          poaMicroIds: [POA_IBGE]
+        };
+      });
+    }
+
+    return referenceIdsPromise;
+  }
+
+  async function fetchPopulationByLocality(ids) {
+    const url = `${IBGE_AGG}/9514/periodos/2022/variaveis/93` +
+      `?localidades=N6[${ids.join(",")}]`;
+
+    const data = await getJSON(url);
+    const output = new Map();
+
+    for (const series of data?.[0]?.resultados?.[0]?.series || []) {
+      const id = String(series?.localidade?.id || "");
+      const value = Number(Object.values(series?.serie || {})[0]);
+      if (id && Number.isFinite(value)) output.set(id, value);
+    }
+
+    return output;
+  }
+
+  async function fetchIncomeByLocality(ids) {
     const classIds = RENDA_CLASS_IDS.join(",");
     const url = `${IBGE_AGG}/10292/periodos/2022/variaveis/4090` +
-      `?localidades=N6[${locations}]&classificacao=11915[${classIds}]|2[6794]`;
+      `?localidades=N6[${ids.join(",")}]` +
+      `&classificacao=11915[${classIds}]|2[6794]`;
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`IBGE retornou HTTP ${response.status}`);
-
-    const data = await response.json();
-    const totals = new Map();
+    const data = await getJSON(url);
+    const output = new Map();
 
     for (const result of data?.[0]?.resultados || []) {
       const classification = (result.classificacoes || [])
         .find(item => String(item.id) === "11915");
       const category = classification?.categoria || {};
-      const key = Object.keys(category)[0];
-      if (!key) continue;
+      const classId = Object.keys(category)[0];
+      if (!classId) continue;
 
-      let value = 0;
       for (const series of result.series || []) {
-        const raw = Object.values(series?.serie || {})[0];
-        const numeric = Number(raw);
-        if (Number.isFinite(numeric)) value += numeric;
-      }
+        const id = String(series?.localidade?.id || "");
+        const value = Number(Object.values(series?.serie || {})[0]);
+        if (!id || !Number.isFinite(value)) continue;
 
-      totals.set(key, (totals.get(key) || 0) + value);
+        const current = output.get(id) || { denominator: 0, ab: 0 };
+        current.denominator += value;
+        if (RENDA_AB_KEYS.has(classId)) current.ab += value;
+        output.set(id, current);
+      }
     }
 
-    return totals;
+    return output;
   }
 
-  async function refreshMicroIncome(force = false) {
-    ensureMicroStructure();
+  async function fetchPop60ByLocality(ids) {
+    const url = `${IBGE_AGG}/9514/periodos/2022/variaveis/93` +
+      `?localidades=N6[${ids.join(",")}]` +
+      `&classificacao=2[4,5]|287[${AGE_60_PLUS_IDS.join(",")}]`;
 
-    const ids = getMicroMunicipalityIds();
-    const microName = document.getElementById("micro-title")?.textContent?.trim() || "";
-    const key = `${microName}|${ids.join(",")}`;
+    const data = await getJSON(url);
+    const output = new Map();
 
-    if (!ids.length || !microName || /—$/.test(microName)) return;
-    if (!force && key === lastMicroKey) return;
+    for (const result of data?.[0]?.resultados || []) {
+      const ageClassification = (result.classificacoes || [])
+        .find(item => String(item.id) === "287");
+      const ageId = Object.keys(ageClassification?.categoria || {})[0];
+      if (!AGE_60_PLUS.has(ageId)) continue;
 
-    lastMicroKey = key;
-    const requestToken = ++rendaRequestToken;
-
-    const pctNode = document.getElementById("micro-renda-ab-pct");
-    const pop60Node = document.getElementById("micro-renda-ab-60");
-    if (pctNode) pctNode.textContent = "…";
-    if (pop60Node) pop60Node.textContent = "…";
-
-    try {
-      const totals = await fetchMicroIncome(ids);
-      if (requestToken !== rendaRequestToken) return;
-
-      let denominator = 0;
-      let rendaAB = 0;
-
-      for (const [classId, value] of totals.entries()) {
-        denominator += Number(value || 0);
-        if (RENDA_AB_KEYS.has(classId)) rendaAB += Number(value || 0);
+      for (const series of result.series || []) {
+        const id = String(series?.localidade?.id || "");
+        const value = Number(Object.values(series?.serie || {})[0]);
+        if (!id || !Number.isFinite(value)) continue;
+        output.set(id, (output.get(id) || 0) + value);
       }
+    }
 
-      const share = denominator > 0 ? rendaAB / denominator : null;
-      const pop60 = parseBrazilianInteger(document.getElementById("micro-60")?.textContent);
-      const estimatedPop60AB = share != null && pop60 != null ? pop60 * share : null;
+    return output;
+  }
 
-      if (pctNode) {
-        pctNode.textContent = share == null
-          ? "—"
-          : `${(share * 100).toLocaleString("pt-BR", {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 1
-            })}%`;
-      }
+  function aggregateMetrics(ids, populationMap, incomeMap, pop60Map) {
+    let totalPopulation = 0;
+    let population60 = 0;
+    let denominator = 0;
+    let incomeAB = 0;
 
-      if (pop60Node) {
-        pop60Node.textContent = estimatedPop60AB == null
-          ? "—"
-          : `≈ ${formatInteger(estimatedPop60AB)}`;
-      }
-    } catch (error) {
-      console.warn("Falha ao calcular renda A+B da microrregião:", error);
-      if (requestToken !== rendaRequestToken) return;
-      lastMicroKey = "";
+    for (const id of ids || []) {
+      totalPopulation += Number(populationMap.get(id) || 0);
+      population60 += Number(pop60Map.get(id) || 0);
+
+      const income = incomeMap.get(id);
+      denominator += Number(income?.denominator || 0);
+      incomeAB += Number(income?.ab || 0);
+    }
+
+    const shareAB = denominator > 0 ? incomeAB / denominator : null;
+    const estimated60AB = Number.isFinite(shareAB)
+      ? population60 * shareAB
+      : null;
+    const estimatedShareTotal = Number.isFinite(estimated60AB) && totalPopulation > 0
+      ? estimated60AB / totalPopulation
+      : null;
+
+    return {
+      totalPopulation,
+      population60,
+      shareAB,
+      estimated60AB,
+      estimatedShareTotal
+    };
+  }
+
+  function formatEstimatedSegment(metric, includeApprox = true) {
+    if (!Number.isFinite(metric?.estimated60AB)) return "—";
+
+    const prefix = includeApprox ? "≈ " : "";
+    return `${prefix}${formatInteger(metric.estimated60AB)} (${formatPercent(metric.estimatedShareTotal)})`;
+  }
+
+  function setCompare(id, caxiasValue, poaValue) {
+    const node = document.getElementById(id);
+    if (!node) return;
+
+    node.innerHTML =
+      `Caxias: <strong>${caxiasValue}</strong> · ` +
+      `POA: <strong>${poaValue}</strong>`;
+  }
+
+  function renderScopeMetrics(scope, target, caxias, poa) {
+    const pctNode = document.getElementById(`${scope}-renda-ab-pct`);
+    const pop60Node = document.getElementById(`${scope}-renda-ab-60`);
+
+    if (pctNode) pctNode.textContent = formatPercent(target?.shareAB);
+    if (pop60Node) pop60Node.textContent = formatEstimatedSegment(target, true);
+
+    setCompare(
+      `${scope}-renda-ab-pct-compare`,
+      formatPercent(caxias?.shareAB),
+      formatPercent(poa?.shareAB)
+    );
+
+    setCompare(
+      `${scope}-renda-ab-60-compare`,
+      formatEstimatedSegment(caxias, false),
+      formatEstimatedSegment(poa, false)
+    );
+  }
+
+  function setMetricsLoading() {
+    ["micro", "city"].forEach(scope => {
+      const pctNode = document.getElementById(`${scope}-renda-ab-pct`);
+      const pop60Node = document.getElementById(`${scope}-renda-ab-60`);
+      if (pctNode) pctNode.textContent = "…";
+      if (pop60Node) pop60Node.textContent = "…";
+    });
+  }
+
+  function setMetricsUnavailable() {
+    ["micro", "city"].forEach(scope => {
+      const pctNode = document.getElementById(`${scope}-renda-ab-pct`);
+      const pop60Node = document.getElementById(`${scope}-renda-ab-60`);
       if (pctNode) pctNode.textContent = "—";
       if (pop60Node) pop60Node.textContent = "—";
+
+      setCompare(`${scope}-renda-ab-pct-compare`, "—", "—");
+      setCompare(`${scope}-renda-ab-60-compare`, "—", "—");
+    });
+  }
+
+  async function refreshIncomeMetrics(force = false) {
+    ensureStructures();
+
+    const { cityId, microIds } = getCurrentIds();
+    if (!cityId || !microIds.length) return;
+
+    const key = `${cityId}|${microIds.join(",")}`;
+    if (!force && key === lastMetricsKey) return;
+
+    lastMetricsKey = key;
+    const requestToken = ++metricsRequestToken;
+    setMetricsLoading();
+
+    try {
+      const refs = await loadReferenceIds();
+
+      const allIds = [...new Set([
+        cityId,
+        ...microIds,
+        ...refs.caxiasCityIds,
+        ...refs.poaCityIds,
+        ...refs.caxiasMicroIds,
+        ...refs.poaMicroIds
+      ])];
+
+      const [populationMap, incomeMap, pop60Map] = await Promise.all([
+        fetchPopulationByLocality(allIds),
+        fetchIncomeByLocality(allIds),
+        fetchPop60ByLocality(allIds)
+      ]);
+
+      if (requestToken !== metricsRequestToken) return;
+
+      const currentCity = aggregateMetrics(
+        [cityId], populationMap, incomeMap, pop60Map
+      );
+      const currentMicro = aggregateMetrics(
+        microIds, populationMap, incomeMap, pop60Map
+      );
+
+      const caxiasCity = aggregateMetrics(
+        refs.caxiasCityIds, populationMap, incomeMap, pop60Map
+      );
+      const poaCity = aggregateMetrics(
+        refs.poaCityIds, populationMap, incomeMap, pop60Map
+      );
+
+      const caxiasMicro = aggregateMetrics(
+        refs.caxiasMicroIds, populationMap, incomeMap, pop60Map
+      );
+      const poaMicro = aggregateMetrics(
+        refs.poaMicroIds, populationMap, incomeMap, pop60Map
+      );
+
+      renderScopeMetrics("city", currentCity, caxiasCity, poaCity);
+      renderScopeMetrics("micro", currentMicro, caxiasMicro, poaMicro);
+    } catch (error) {
+      console.warn("Falha ao calcular os indicadores de renda A+B:", error);
+      if (requestToken !== metricsRequestToken) return;
+      lastMetricsKey = "";
+      setMetricsUnavailable();
     }
   }
 
@@ -279,9 +520,9 @@
     window.clearTimeout(refreshTimer);
     refreshTimer = window.setTimeout(() => {
       replaceStaticLabels();
-      ensureMicroStructure();
-      refreshMicroIncome(false);
-    }, 180);
+      ensureStructures();
+      refreshIncomeMetrics(false);
+    }, 220);
   }
 
   function scheduleHospitalPreparation() {
@@ -291,7 +532,7 @@
 
   function initialize() {
     replaceStaticLabels();
-    ensureMicroStructure();
+    ensureStructures();
     prepareExecutiveHospitalRows();
 
     const executiveButton = document.getElementById("print-exec-btn");
@@ -299,7 +540,7 @@
 
     window.addEventListener("beforeprint", () => {
       replaceStaticLabels();
-      ensureMicroStructure();
+      ensureStructures();
       if (document.body.classList.contains("print-executive")) {
         prepareExecutiveHospitalRows();
       }
@@ -314,7 +555,9 @@
           ? mutation.target
           : mutation.target?.parentElement;
 
-        if (target?.closest?.("#city-leitos-table tbody")) hospitalTableChanged = true;
+        if (target?.closest?.("#city-leitos-table tbody")) {
+          hospitalTableChanged = true;
+        }
       }
 
       scheduleRefresh();
