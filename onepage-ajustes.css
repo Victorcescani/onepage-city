@@ -1,0 +1,229 @@
+/* =========================================================
+ * One Page — ajustes de layout e impressão da microrregião
+ * Carregar depois de style.css.
+ * ========================================================= */
+
+/* O antigo banner de teste do CNES não faz parte da interface final. */
+.test-mode-banner {
+  display: none !important;
+}
+
+/* Resumo da microrregião: oito indicadores em quatro colunas. */
+.micro-summary-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.micro-summary-kpis .kpi {
+  min-height: 64px;
+  padding: 8px 10px;
+}
+
+.micro-summary-kpis .k-label {
+  font-size: 10.5px;
+  line-height: 1.12;
+}
+
+.micro-summary-kpis .k-val {
+  font-size: 19px;
+  line-height: 1.05;
+}
+
+/* Linha que deve fechar a página da microrregião. */
+.micro-page1-end {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Total executivo filtrado é exibido somente na impressão executiva. */
+#city-leitos-table .exec-filter-total {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .micro-summary-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .micro-summary-kpis {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media print {
+  /* Novo nome da terceira seção no PDF detalhado. */
+  .tab-panel[data-panel="infra"]::before {
+    content: "HOSPITAIS" !important;
+  }
+
+  /* =======================================================
+   * PDF executivo: microrregião inteira na página 1
+   * ======================================================= */
+  body.print-executive .tab-panel[data-panel="micro"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    break-before: auto !important;
+    page-break-before: auto !important;
+  }
+
+  body.print-executive .tab-panel[data-panel="micro"]::before {
+    order: 0 !important;
+    font-size: 15pt !important;
+    line-height: 1 !important;
+    padding: 5px 8px !important;
+    margin: 0 0 2mm !important;
+  }
+
+  body.print-executive .micro-summary-kpis {
+    order: 1 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 1.5mm !important;
+    margin: 0 0 1.7mm !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.print-executive .micro-summary-kpis .kpi {
+    min-height: 10.5mm !important;
+    height: auto !important;
+    padding: 1.4mm 1.8mm !important;
+    border-radius: 4px !important;
+    gap: 0.6mm !important;
+  }
+
+  body.print-executive .micro-summary-kpis .k-label {
+    font-size: 6.7pt !important;
+    line-height: 1.02 !important;
+    letter-spacing: 0 !important;
+  }
+
+  body.print-executive .micro-summary-kpis .k-val,
+  body.print-executive .micro-summary-kpis .kpi.big .k-val {
+    font-size: 11.5pt !important;
+    line-height: 1 !important;
+    margin-top: 0.5mm !important;
+  }
+
+  body.print-executive .card:has(#micro-ops-table) {
+    order: 2 !important;
+    padding: 1.6mm !important;
+    margin: 0 0 1.5mm !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.print-executive .card:has(#micro-ops-table) h3 {
+    font-size: 9pt !important;
+    line-height: 1 !important;
+    margin: 0 0 1mm !important;
+  }
+
+  body.print-executive #micro-ops-table,
+  body.print-executive #micro-ops-table th,
+  body.print-executive #micro-ops-table td {
+    font-size: 5.8pt !important;
+    line-height: 1 !important;
+  }
+
+  body.print-executive #micro-ops-table th,
+  body.print-executive #micro-ops-table td {
+    padding: 0.75mm 1mm !important;
+  }
+
+  body.print-executive .card:has(#micro-ops-table) .muted {
+    font-size: 5.5pt !important;
+    line-height: 1 !important;
+    margin: 0.8mm 0 0 !important;
+  }
+
+  body.print-executive .micro-leitos-totals {
+    order: 3 !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 1.5mm !important;
+    margin: 0 0 1.5mm !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.print-executive .micro-leitos-totals .kpi {
+    min-height: 9.5mm !important;
+    padding: 1.3mm 1.6mm !important;
+    border-radius: 4px !important;
+  }
+
+  body.print-executive .micro-leitos-totals .k-label {
+    font-size: 6.4pt !important;
+    line-height: 1 !important;
+  }
+
+  body.print-executive .micro-leitos-totals .k-val,
+  body.print-executive .micro-leitos-totals .kpi.big .k-val {
+    font-size: 11pt !important;
+    line-height: 1 !important;
+  }
+
+  body.print-executive .micro-page1-end {
+    order: 4 !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 1.5mm !important;
+    margin: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: avoid !important;
+    page-break-before: avoid !important;
+  }
+
+  body.print-executive .micro-page1-end .kpi {
+    min-height: 10.5mm !important;
+    height: auto !important;
+    padding: 1.3mm 1.6mm !important;
+    border-radius: 4px !important;
+  }
+
+  body.print-executive .micro-page1-end .k-label {
+    font-size: 6.2pt !important;
+    line-height: 1 !important;
+  }
+
+  body.print-executive .micro-page1-end .k-val {
+    font-size: 10.8pt !important;
+    line-height: 1 !important;
+    margin-top: 0.5mm !important;
+  }
+
+  body.print-executive .micro-page1-end .k-compare {
+    font-size: 5.4pt !important;
+    line-height: 1 !important;
+    margin-top: 0.5mm !important;
+    padding-top: 0.4mm !important;
+  }
+
+  /* A cidade continua obrigatoriamente na página seguinte. */
+  body.print-executive .tab-panel[data-panel="cidade"],
+  body.print-executive .tab-panel[data-panel="city"] {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* =======================================================
+   * Leitos por hospital: somente privado e sem fins lucrativos
+   * na versão executiva.
+   * ======================================================= */
+  body.print-executive #city-leitos-table tbody tr:not(.exec-nature-allowed) {
+    display: none !important;
+  }
+
+  body.print-executive #city-leitos-table tfoot tr:not(.exec-filter-total) {
+    display: none !important;
+  }
+
+  body.print-executive #city-leitos-table tfoot .exec-filter-total {
+    display: table-row !important;
+  }
+}
