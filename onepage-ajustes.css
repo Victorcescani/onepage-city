@@ -1,5 +1,5 @@
 /* =========================================================
- * One Page — ajustes de layout e impressão v3
+ * One Page — ajustes de layout e impressão v4
  * Carregar depois de style.css.
  * ========================================================= */
 
@@ -106,7 +106,7 @@
   }
 
   body.print-executive .micro-summary-kpis .kpi {
-    min-height: 11.5mm !important;
+    min-height: 13mm !important;
     height: auto !important;
     padding: 1.3mm 1.7mm !important;
     border-radius: 4px !important;
@@ -127,10 +127,10 @@
   }
 
   body.print-executive .micro-summary-kpis .k-compare {
-    font-size: 4.9pt !important;
-    line-height: 1 !important;
-    margin-top: 0.4mm !important;
-    padding-top: 0.35mm !important;
+    font-size: 6.8pt !important;
+    line-height: 1.08 !important;
+    margin-top: 0.55mm !important;
+    padding-top: 0.5mm !important;
   }
 
   body.print-executive .card:has(#micro-ops-table) {
@@ -150,19 +150,44 @@
   body.print-executive #micro-ops-table,
   body.print-executive #micro-ops-table th,
   body.print-executive #micro-ops-table td {
-    font-size: 5.8pt !important;
-    line-height: 1 !important;
+    font-size: 8pt !important;
+    line-height: 1.1 !important;
+  }
+
+  body.print-executive #micro-ops-table {
+    table-layout: fixed !important;
   }
 
   body.print-executive #micro-ops-table th,
   body.print-executive #micro-ops-table td {
-    padding: 0.75mm 1mm !important;
+    padding: 1mm 1.2mm !important;
+    vertical-align: middle !important;
+  }
+
+  body.print-executive #micro-ops-table th:nth-child(1),
+  body.print-executive #micro-ops-table td:nth-child(1) {
+    width: 53% !important;
+  }
+
+  body.print-executive #micro-ops-table th:nth-child(2),
+  body.print-executive #micro-ops-table td:nth-child(2) {
+    width: 25% !important;
+  }
+
+  body.print-executive #micro-ops-table th:nth-child(3),
+  body.print-executive #micro-ops-table td:nth-child(3) {
+    width: 14% !important;
+  }
+
+  body.print-executive #micro-ops-table th:nth-child(4),
+  body.print-executive #micro-ops-table td:nth-child(4) {
+    width: 8% !important;
   }
 
   body.print-executive .card:has(#micro-ops-table) .muted {
-    font-size: 5.5pt !important;
-    line-height: 1 !important;
-    margin: 0.8mm 0 0 !important;
+    font-size: 6.5pt !important;
+    line-height: 1.08 !important;
+    margin: 1mm 0 0 !important;
   }
 
   body.print-executive .micro-leitos-totals {
@@ -205,7 +230,7 @@
   }
 
   body.print-executive .micro-page1-end .kpi {
-    min-height: 10.5mm !important;
+    min-height: 12mm !important;
     height: auto !important;
     padding: 1.3mm 1.6mm !important;
     border-radius: 4px !important;
@@ -223,10 +248,10 @@
   }
 
   body.print-executive .micro-page1-end .k-compare {
-    font-size: 5.4pt !important;
-    line-height: 1 !important;
-    margin-top: 0.5mm !important;
-    padding-top: 0.4mm !important;
+    font-size: 6.8pt !important;
+    line-height: 1.08 !important;
+    margin-top: 0.6mm !important;
+    padding-top: 0.5mm !important;
   }
 
   /* Resumo da cidade: dez indicadores em duas linhas de cinco. */
@@ -260,10 +285,10 @@
   }
 
   body.print-executive .city-summary-kpis .k-compare {
-    font-size: 4.7pt !important;
-    line-height: 1 !important;
-    margin-top: 0.4mm !important;
-    padding-top: 0.35mm !important;
+    font-size: 6.2pt !important;
+    line-height: 1.08 !important;
+    margin-top: 0.5mm !important;
+    padding-top: 0.45mm !important;
   }
 
   body.print-executive .tab-panel[data-panel="cidade"],
