@@ -12,7 +12,7 @@ from typing import Iterable
 import pandas as pd
 import psycopg
 
-PIPELINE_VERSION = "0.1.0"
+PIPELINE_VERSION = "0.1.1"
 TARGET_MUNICIPALITIES = {
     "4316808": "Santa Cruz do Sul",
     "4314902": "Porto Alegre",
@@ -84,6 +84,12 @@ def register_load(conn: psycopg.Connection, result: LoadResult, status: str, err
     conn.commit()
 
 
+def ensure_text_column(frame: pd.DataFrame, column: str, default: str = "") -> pd.Series:
+    if column not in frame.columns:
+        return pd.Series(default, index=frame.index, dtype="string")
+    return frame[column].fillna(default).astype("string")
+
+
 def normalize_production(frame: pd.DataFrame, source: str) -> pd.DataFrame:
     required = {
         "competencia",
@@ -97,14 +103,15 @@ def normalize_production(frame: pd.DataFrame, source: str) -> pd.DataFrame:
 
     result = frame.copy()
     result["fonte"] = source
-    result["competencia"] = pd.to_datetime(result["competencia"]).dt.date
-    result["codigo_municipio_atendimento"] = result["codigo_municipio_atendimento"].astype(str).str.zfill(7)
-    result["codigo_municipio_residencia"] = result.get("codigo_municipio_residencia", "").astype(str).str.zfill(7)
-    result["codigo_sigtap"] = result["codigo_sigtap"].astype(str).str.zfill(10)
-    result["cnes"] = result.get("cnes", "").astype(str).str.zfill(7)
+    result["competencia"] = pd.to_datetime(result["competencia"], errors="raise").dt.date
+    result["codigo_municipio_atendimento"] = result["codigo_municipio_atendimento"].astype("string").str.zfill(7)
+    result["codigo_municipio_residencia"] = ensure_text_column(result, "codigo_municipio_residencia").str.zfill(7)
+    result["codigo_sigtap"] = result["codigo_sigtap"].astype("string").str.zfill(10)
+    result["cnes"] = ensure_text_column(result, "cnes").str.zfill(7)
     result["quantidade_aprovada"] = pd.to_numeric(result["quantidade_aprovada"], errors="coerce").fillna(0)
-    result["valor_aprovado"] = pd.to_numeric(result.get("valor_aprovado", 0), errors="coerce").fillna(0)
-    result["tipo_atendimento"] = result.get("tipo_atendimento", "")
+    valor = ensure_text_column(result, "valor_aprovado", "0")
+    result["valor_aprovado"] = pd.to_numeric(valor, errors="coerce").fillna(0)
+    result["tipo_atendimento"] = ensure_text_column(result, "tipo_atendimento")
 
     result = result[result["codigo_municipio_atendimento"].isin(TARGET_MUNICIPALITIES)]
     return result[
@@ -122,7 +129,7 @@ def normalize_production(frame: pd.DataFrame, source: str) -> pd.DataFrame:
     ]
 
 
-def load_production_csv(conn: psycopg.Connection, path: Path, source: str, dry_run: bool) -> LoadResult:
+def load_production_csv(conn: psycopg.Connection | None, path: Path, source: str, dry_run: bool) -> LoadResult:
     frame = pd.read_csv(path, dtype=str)
     normalized = normalize_production(frame, source)
     competence = normalized["competencia"].min() if not normalized.empty else None
@@ -131,6 +138,8 @@ def load_production_csv(conn: psycopg.Connection, path: Path, source: str, dry_r
     if dry_run:
         logging.info("Dry-run: %s linhas válidas em %s", result.rows, path)
         return result
+    if conn is None:
+        raise RuntimeError("Conexão com banco ausente")
 
     rows: Iterable[tuple] = normalized.itertuples(index=False, name=None)
     with conn.cursor() as cur:
@@ -161,7 +170,7 @@ def main() -> None:
         raise FileNotFoundError(args.input)
 
     if args.dry_run:
-        result = load_production_csv(None, args.input, args.source, True)  # type: ignore[arg-type]
+        result = load_production_csv(None, args.input, args.source, True)
         logging.info("Validação concluída: %s", result)
         return
 
