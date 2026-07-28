@@ -67,10 +67,10 @@ CREATE TABLE IF NOT EXISTS fact_beneficiarios (
   competencia DATE NOT NULL,
   codigo_ibge CHAR(7) NOT NULL,
   tipo_contratacao TEXT NOT NULL,
-  faixa_etaria TEXT,
-  sexo TEXT,
+  faixa_etaria TEXT NOT NULL DEFAULT '',
+  sexo TEXT NOT NULL DEFAULT '',
   quantidade INTEGER NOT NULL,
-  PRIMARY KEY (competencia, codigo_ibge, tipo_contratacao, COALESCE(faixa_etaria,''), COALESCE(sexo,''))
+  PRIMARY KEY (competencia, codigo_ibge, tipo_contratacao, faixa_etaria, sexo)
 );
 
 CREATE TABLE IF NOT EXISTS fact_estrutura (
