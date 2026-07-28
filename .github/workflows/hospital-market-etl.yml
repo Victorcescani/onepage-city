@@ -1,0 +1,76 @@
+name: Hospital market ETL
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Fonte de produção
+        required: true
+        default: SIA
+        type: choice
+        options: [SIA, SIH]
+      input_file:
+        description: Caminho do CSV normalizado no repositório ou artefato preparado
+        required: true
+        default: data/input/producao_exemplo.csv
+        type: string
+      dry_run:
+        description: Executar apenas validação
+        required: true
+        default: true
+        type: boolean
+  schedule:
+    - cron: "17 5 8 * *"
+
+concurrency:
+  group: hospital-market-etl
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-etl.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-etl.txt
+
+      - name: Resolve execution parameters
+        id: params
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "source=${{ inputs.source }}" >> "$GITHUB_OUTPUT"
+            echo "input_file=${{ inputs.input_file }}" >> "$GITHUB_OUTPUT"
+            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=SIA" >> "$GITHUB_OUTPUT"
+            echo "input_file=data/input/producao_exemplo.csv" >> "$GITHUB_OUTPUT"
+            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate input availability
+        run: test -f "${{ steps.params.outputs.input_file }}"
+
+      - name: Run pipeline
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          EXTRA_ARGS=""
+          if [[ "${{ steps.params.outputs.dry_run }}" == "true" ]]; then
+            EXTRA_ARGS="--dry-run"
+          fi
+          python etl/run_hospital_market_pipeline.py \
+            --source "${{ steps.params.outputs.source }}" \
+            --input "${{ steps.params.outputs.input_file }}" \
+            $EXTRA_ARGS
