@@ -1,5 +1,5 @@
 /* =========================================================
- * One Page — ajustes de layout e impressão v4
+ * One Page — ajustes de layout e impressão v5
  * Carregar depois de style.css.
  * ========================================================= */
 
@@ -308,5 +308,129 @@
 
   body.print-executive #city-leitos-table tfoot .exec-filter-total {
     display: table-row !important;
+  }
+}
+
+
+/* =========================================================
+ * V5 — simplificação visual e referências executivas
+ * ========================================================= */
+
+/* 4. IQM permanece no código, mas fica temporariamente oculto. */
+.iqm-card {
+  display: none !important;
+}
+
+/* 3. Gráfico de composição de renda no fim da Cidade temporariamente removido. */
+.card:has(#city-renda),
+.section-hidden-by-design {
+  display: none !important;
+}
+
+/* 6. Bloco comparativo de tipos/serviços da microrregião removido. */
+.tab-panel[data-panel="micro"] .grid-2:has(#micro-types-table),
+.tab-panel[data-panel="micro"] .grid-2:has(#micro-services-table) {
+  display: none !important;
+}
+
+/* 1. Hospitais sem fotografia. Mantém apenas conteúdo assistencial. */
+.top3-hospital {
+  grid-template-columns: 1fr !important;
+  position: relative;
+  padding-top: 24px !important;
+}
+
+.top3-photo {
+  display: none !important;
+}
+
+.top3-hospital::before {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.top3-hospital:nth-child(1)::before { content: "1º"; }
+.top3-hospital:nth-child(2)::before { content: "2º"; }
+.top3-hospital:nth-child(3)::before { content: "3º"; }
+
+/* 2. Destaque em azul escuro no TOTAL, não no SUS. */
+.top3-stat.sus {
+  background: var(--panel-2) !important;
+  color: var(--ink) !important;
+  border-color: var(--border) !important;
+}
+
+.top3-stat.sus .label {
+  color: var(--muted) !important;
+}
+
+.top3-stat.sus .value {
+  color: var(--ink) !important;
+}
+
+.top3-stats .top3-stat:first-child {
+  background: var(--brand) !important;
+  color: #fff !important;
+  border-color: var(--brand) !important;
+}
+
+.top3-stats .top3-stat:first-child .label,
+.top3-stats .top3-stat:first-child .value {
+  color: #fff !important;
+}
+
+/* 8, 10 e 12. Comparativos e fontes junto aos blocos de indicadores. */
+.summary-kpis .k-compare {
+  white-space: normal !important;
+}
+
+.summary-source {
+  margin: 5px 2px 10px !important;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.25;
+}
+
+@media print {
+  body.print-executive .summary-source {
+    font-size: 6.4pt !important;
+    line-height: 1.1 !important;
+    margin: 0.8mm 0 1.4mm !important;
+  }
+
+  body.print-executive .micro-summary-source {
+    order: 1 !important;
+  }
+
+  /* Com o IQM oculto há folga para ampliar referências sem comprometer paginação. */
+  body.print-executive .micro-summary-kpis .k-compare,
+  body.print-executive .micro-page1-end .k-compare {
+    font-size: 7.2pt !important;
+    line-height: 1.1 !important;
+  }
+
+  body.print-executive .city-summary-kpis .k-compare {
+    font-size: 6.8pt !important;
+    line-height: 1.1 !important;
+  }
+
+  .top3-hospital {
+    grid-template-columns: 1fr !important;
+  }
+
+  .top3-photo {
+    display: none !important;
   }
 }
