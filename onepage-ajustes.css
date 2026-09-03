@@ -1,5 +1,5 @@
 /* =========================================================
- * One Page — ajustes de layout e impressão v5
+ * One Page — ajustes de layout e impressão v6
  * Carregar depois de style.css.
  * ========================================================= */
 
@@ -431,6 +431,50 @@
   }
 
   .top3-photo {
+    display: none !important;
+  }
+}
+
+
+/* =========================================================
+ * V6 — limpeza da aba Hospitais e comparativos descontinuados
+ * ========================================================= */
+
+/* Remove o mapa da aba Hospitais. */
+.card:has(#infra-map) {
+  display: none !important;
+}
+
+/* Remove comparativos de tipos de estabelecimentos e serviços também da Cidade. */
+.tab-panel[data-panel="cidade"] .grid-2:has(#city-types-table),
+.tab-panel[data-panel="cidade"] .grid-2:has(#city-services-table),
+.tab-panel[data-panel="city"] .grid-2:has(#city-types-table),
+.tab-panel[data-panel="city"] .grid-2:has(#city-services-table) {
+  display: none !important;
+}
+
+/* Corrige o badge do ranking para não sobrepor o nome do hospital. */
+.top3-hospital {
+  padding-top: 18px !important;
+}
+
+.top3-hospital::before {
+  top: 12px !important;
+  right: 12px !important;
+  left: auto !important;
+  z-index: 2;
+}
+
+.top3-body h4 {
+  padding-right: 54px;
+}
+
+@media print {
+  .card:has(#infra-map),
+  .tab-panel[data-panel="cidade"] .grid-2:has(#city-types-table),
+  .tab-panel[data-panel="cidade"] .grid-2:has(#city-services-table),
+  .tab-panel[data-panel="city"] .grid-2:has(#city-types-table),
+  .tab-panel[data-panel="city"] .grid-2:has(#city-services-table) {
     display: none !important;
   }
 }
