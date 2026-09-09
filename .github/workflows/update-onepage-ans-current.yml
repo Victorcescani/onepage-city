@@ -1,0 +1,187 @@
+name: Preparar candidata ANS do One Page
+
+on:
+  schedule:
+    - cron: "15 10 * * 1"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/update-onepage-ans-current.yml"
+      - "scripts/ans/**"
+      - "scripts/gerar_ans_uf.js"
+      - "api/_lib/ans.js"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: onepage-ans-candidate-refresh
+  cancel-in-progress: false
+
+jobs:
+  prepare-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Baixar produção aprovada
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Instalar unzip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+
+      - name: Validar sintaxe do pipeline atual
+        run: |
+          node --check scripts/gerar_ans_uf.js
+          node --check scripts/ans/discover-latest.js
+          node --check scripts/ans/validate-candidate.js
+          node --check api/_lib/ans.js
+          node --check app.js
+          node --check onepage-ajustes.js
+
+      - name: Comparar competência oficial com a publicada
+        id: competence
+        shell: bash
+        run: |
+          OFFICIAL="$(npm run --silent ans:discover-latest -- RS)"
+          APPROVED="$(node -p 'JSON.parse(require("fs").readFileSync("data/ans/releases/approved.json", "utf8")).competence')"
+          if [[ ! "$OFFICIAL" =~ ^[0-9]{6}$ ]]; then
+            echo "Competência oficial inválida: $OFFICIAL" >&2
+            exit 1
+          fi
+          if [[ ! "$APPROVED" =~ ^[0-9]{6}$ ]]; then
+            echo "Competência aprovada inválida: $APPROVED" >&2
+            exit 1
+          fi
+          echo "official=$OFFICIAL" >> "$GITHUB_OUTPUT"
+          echo "approved=$APPROVED" >> "$GITHUB_OUTPUT"
+          if [[ "$OFFICIAL" == "$APPROVED" ]]; then
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            echo "Produção já utiliza a competência aprovada $APPROVED."
+          else
+            echo "needs_update=true" >> "$GITHUB_OUTPUT"
+            echo "Nova candidata detectada: publicada=$APPROVED oficial=$OFFICIAL."
+          fi
+
+      - name: Criar branch isolada da candidata
+        if: steps.competence.outputs.needs_update == 'true'
+        run: |
+          git fetch origin main
+          git checkout -B onepage-ans-candidate origin/main
+
+      - name: Determinar competências comparativas
+        if: steps.competence.outputs.needs_update == 'true'
+        id: reference
+        shell: bash
+        env:
+          CURRENT: ${{ steps.competence.outputs.official }}
+        run: |
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const current = process.env.CURRENT;
+          const year = Number(current.slice(0, 4));
+          const month = Number(current.slice(4, 6));
+          const previous = new Date(Date.UTC(year, month - 2, 1));
+          const previousMonth = `${previous.getUTCFullYear()}${String(previous.getUTCMonth() + 1).padStart(2, '0')}`;
+          const previousYear = `${year - 1}${String(month).padStart(2, '0')}`;
+          console.log(`previous_month=${previousMonth}`);
+          console.log(`previous_year=${previousYear}`);
+          NODE
+
+      - name: Extrair competência candidata RS e SC
+        if: steps.competence.outputs.needs_update == 'true'
+        run: |
+          node scripts/gerar_ans_uf.js RS SC ${{ steps.competence.outputs.official }} --overwrite
+
+      - name: Garantir mês anterior para comparação
+        if: steps.competence.outputs.needs_update == 'true'
+        run: |
+          node scripts/gerar_ans_uf.js RS SC ${{ steps.reference.outputs.previous_month }} || true
+
+      - name: Garantir mesmo mês do ano anterior
+        if: steps.competence.outputs.needs_update == 'true'
+        run: |
+          node scripts/gerar_ans_uf.js RS SC ${{ steps.reference.outputs.previous_year }} || true
+
+      - name: Executar release gate automático
+        if: steps.competence.outputs.needs_update == 'true'
+        run: |
+          node scripts/ans/validate-candidate.js \
+            --candidate=${{ steps.competence.outputs.official }} \
+            --approved=${{ steps.competence.outputs.approved }} \
+            --ufs=RS,SC
+
+      - name: Revalidar aplicação candidata
+        if: steps.competence.outputs.needs_update == 'true'
+        run: |
+          node --check app.js
+          node --check onepage-ajustes.js
+          node --check api/_lib/ans.js
+          node --check api/proxy/ans.js
+          node --check api/proxy/ans_multi.js
+          node --check api/proxy/ans_history.js
+
+      - name: Publicar somente na branch de homologação
+        if: steps.competence.outputs.needs_update == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ans_*.json data/ans/releases
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração candidata para registrar."
+          else
+            git commit -m "data(ans): prepara competência ${{ steps.competence.outputs.official }} para homologação"
+          fi
+          git push --force-with-lease origin HEAD:onepage-ans-candidate
+
+      - name: Abrir ou atualizar PR de homologação
+        if: steps.competence.outputs.needs_update == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: ${{ steps.competence.outputs.official }}
+          APPROVED: ${{ steps.competence.outputs.approved }}
+        shell: bash
+        run: |
+          STATUS="$(node -p 'JSON.parse(require("fs").readFileSync("data/ans/releases/candidate.json", "utf8")).status')"
+          VALIDATION="$(node -p 'JSON.parse(require("fs").readFileSync("data/ans/releases/candidate.json", "utf8")).validationStatus')"
+          TITLE="One Page · ANS ${CANDIDATE} · aguardando aprovação"
+          if [[ "$STATUS" == "blocked" ]]; then
+            TITLE="[BLOQUEADO] One Page · ANS ${CANDIDATE}"
+          fi
+          BODY="Competência candidata **${CANDIDATE}** preparada automaticamente para o One Page.\n\nProdução permanece em **${APPROVED}** até aprovação explícita.\n\nValidação automática: **${VALIDATION}**.\n\nA candidata contém RS e SC e não altera a produção enquanto este PR não for promovido pelo workflow de aprovação."
+          PR_URL="$(gh pr list --head onepage-ans-candidate --base main --state open --json url --jq '.[0].url // empty')"
+          if [[ -z "$PR_URL" ]]; then
+            PR_URL="$(gh pr create --head onepage-ans-candidate --base main --title "$TITLE" --body "$BODY")"
+          else
+            gh pr edit "$PR_URL" --title "$TITLE" --body "$BODY"
+          fi
+          echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Resumo
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Release Gate ANS · One Page"
+            echo
+            echo "- Competência publicada: ${{ steps.competence.outputs.approved || 'não resolvida' }}"
+            echo "- Competência oficial detectada: ${{ steps.competence.outputs.official || 'não resolvida' }}"
+            echo "- Nova candidata necessária: ${{ steps.competence.outputs.needs_update || 'não resolvido' }}"
+            echo "- PR de homologação: ${{ steps.pr.outputs.url || 'não criado' }}"
+            echo "- Produção alterada automaticamente: **não**"
+            echo "- Resultado técnico: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"
