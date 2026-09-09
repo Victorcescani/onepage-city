@@ -1,0 +1,9 @@
+{
+  "competence": "202602",
+  "status": "published",
+  "ufs": ["RS", "SC"],
+  "publishedAt": "2026-06-22T12:37:00.000Z",
+  "previousCompetence": null,
+  "source": "baseline-onepage",
+  "notes": "Baseline criada a partir da competência mais recente já publicada no One Page antes do release gate v2."
+}

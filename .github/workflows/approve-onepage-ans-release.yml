@@ -1,0 +1,125 @@
+name: Aprovar publicação ANS do One Page
+
+on:
+  workflow_dispatch:
+    inputs:
+      competence:
+        description: "Competência candidata AAAAMM"
+        required: true
+        type: string
+      confirmation:
+        description: "Digite APROVAR para promover a candidata"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: onepage-ans-release-promotion
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Validar confirmação
+        shell: bash
+        run: |
+          [[ "${{ inputs.confirmation }}" == "APROVAR" ]] || { echo "Confirmação inválida." >&2; exit 1; }
+
+      - name: Baixar candidata
+        uses: actions/checkout@v6
+        with:
+          ref: onepage-ans-candidate
+          fetch-depth: 0
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Verificar candidata e release gate
+        env:
+          EXPECTED: ${{ inputs.competence }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const candidate = JSON.parse(fs.readFileSync('data/ans/releases/candidate.json', 'utf8'));
+          const report = JSON.parse(fs.readFileSync('data/ans/releases/candidate-validation.json', 'utf8'));
+          if (candidate.competence !== process.env.EXPECTED) throw new Error(`Candidata atual ${candidate.competence} difere da solicitada ${process.env.EXPECTED}.`);
+          if (candidate.status !== 'pending') throw new Error(`Candidata não está pendente: ${candidate.status}.`);
+          if (report.status === 'blocked' || (report.blockingIssues || []).length > 0) throw new Error('Release gate bloqueou esta competência.');
+          if (!['passed', 'passed_with_warnings'].includes(report.status)) throw new Error(`Validação automática não concluída: ${report.status}.`);
+          NODE
+
+      - name: Revalidar aplicação antes da promoção
+        run: |
+          node --check app.js
+          node --check onepage-ajustes.js
+          node --check api/_lib/ans.js
+          node --check api/proxy/ans.js
+          node --check api/proxy/ans_multi.js
+          node --check api/proxy/ans_history.js
+
+      - name: Marcar competência como aprovada
+        env:
+          EXPECTED: ${{ inputs.competence }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const approvedPath = 'data/ans/releases/approved.json';
+          const candidatePath = 'data/ans/releases/candidate.json';
+          const historyPath = 'data/ans/releases/history.json';
+          const approved = JSON.parse(fs.readFileSync(approvedPath, 'utf8'));
+          const candidate = JSON.parse(fs.readFileSync(candidatePath, 'utf8'));
+          const history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
+          const now = new Date().toISOString();
+
+          const nextApproved = {
+            competence: process.env.EXPECTED,
+            status: 'published',
+            ufs: candidate.ufs || ['RS', 'SC'],
+            publishedAt: now,
+            previousCompetence: approved.competence,
+            source: 'onepage-ans-candidate',
+            notes: 'Competência promovida após validação automática e aprovação explícita.'
+          };
+
+          candidate.status = 'published';
+          candidate.publishedAt = now;
+          candidate.notes = 'Competência aprovada e promovida para produção.';
+
+          history.push({
+            competence: process.env.EXPECTED,
+            status: 'published',
+            publishedAt: now,
+            previousCompetence: approved.competence,
+            source: 'approval-workflow'
+          });
+
+          fs.writeFileSync(approvedPath, JSON.stringify(nextApproved, null, 2) + '\n');
+          fs.writeFileSync(candidatePath, JSON.stringify(candidate, null, 2) + '\n');
+          fs.writeFileSync(historyPath, JSON.stringify(history, null, 2) + '\n');
+          NODE
+
+      - name: Registrar aprovação na branch candidata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ans/releases
+          git commit -m "release(ans): aprova competência ${{ inputs.competence }}"
+          git push origin HEAD:onepage-ans-candidate
+
+      - name: Promover PR para main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          PR_URL="$(gh pr list --head onepage-ans-candidate --base main --state open --json url --jq '.[0].url // empty')"
+          [[ -n "$PR_URL" ]] || { echo "PR de homologação não encontrado." >&2; exit 1; }
+          gh pr merge "$PR_URL" --merge --delete-branch=false
+          echo "Competência ${{ inputs.competence }} promovida para produção."

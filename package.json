@@ -9,7 +9,9 @@
   "scripts": {
     "gerar:iqm-rs": "node scripts/gerar_iqm_rs.js",
     "gerar:ans": "node scripts/gerar_ans_uf.js",
-    "gerar:ans-sc": "node scripts/gerar_ans_uf.js SC --months-from RS"
+    "gerar:ans-sc": "node scripts/gerar_ans_uf.js SC --months-from RS",
+    "ans:discover-latest": "node scripts/ans/discover-latest.js",
+    "ans:validate-candidate": "node scripts/ans/validate-candidate.js"
   },
   "dependencies": {}
 }
