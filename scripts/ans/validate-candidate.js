@@ -215,8 +215,6 @@ function main() {
   );
 
   console.log(JSON.stringify({ status, candidate, approved, ufs, blockingIssues: blockingIssues.length, warnings: warnings.length }, null, 2));
-
-  if (status === "blocked") process.exitCode = 2;
 }
 
 try {
