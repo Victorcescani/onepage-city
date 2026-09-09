@@ -1,0 +1,58 @@
+{
+  "candidate": "202607",
+  "baseCompetence": "202602",
+  "ufs": [
+    "RS",
+    "SC"
+  ],
+  "status": "passed",
+  "generatedAt": "2026-09-09T13:55:55.220Z",
+  "blockingIssues": [],
+  "warnings": [],
+  "results": [
+    {
+      "uf": "RS",
+      "status": "passed",
+      "candidate": {
+        "cityCount": 499,
+        "operatorRows": 21658,
+        "total": 3823663,
+        "mh": 2669594,
+        "odonto": 1154069,
+        "problems": []
+      },
+      "approved": {
+        "cityCount": 499,
+        "operatorRows": 21603,
+        "total": 3781499,
+        "mh": 2663001,
+        "odonto": 1118498,
+        "problems": []
+      },
+      "blockingIssues": [],
+      "warnings": []
+    },
+    {
+      "uf": "SC",
+      "status": "passed",
+      "candidate": {
+        "cityCount": 296,
+        "operatorRows": 16114,
+        "total": 2773081,
+        "mh": 1749120,
+        "odonto": 1023961,
+        "problems": []
+      },
+      "approved": {
+        "cityCount": 296,
+        "operatorRows": 16007,
+        "total": 2728149,
+        "mh": 1733821,
+        "odonto": 994328,
+        "problems": []
+      },
+      "blockingIssues": [],
+      "warnings": []
+    }
+  ]
+}
