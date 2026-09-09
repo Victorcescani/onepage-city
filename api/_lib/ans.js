@@ -6,9 +6,11 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Em serverless Vercel, process.cwd() é a raiz do projeto
 const DATA_DIR = path.join(process.cwd(), "data");
+const RELEASE_DIR = path.join(DATA_DIR, "ans", "releases");
 
 // Cache em memória por instância de função (ajuda em invocações seguidas)
 const memCache = new Map();
+const pointerCache = new Map();
 
 function loadMonth(uf, ym) {
   const key = `${uf}_${ym}`;
@@ -22,6 +24,44 @@ function loadMonth(uf, ym) {
   } catch {
     return null;
   }
+}
+
+function readReleasePointer(fileName) {
+  if (pointerCache.has(fileName)) return pointerCache.get(fileName);
+
+  const file = path.join(RELEASE_DIR, fileName);
+  if (!fs.existsSync(file)) {
+    pointerCache.set(fileName, null);
+    return null;
+  }
+
+  try {
+    const value = JSON.parse(fs.readFileSync(file, "utf8"));
+    pointerCache.set(fileName, value);
+    return value;
+  } catch {
+    pointerCache.set(fileName, null);
+    return null;
+  }
+}
+
+function normalizeCompetence(value) {
+  const ym = String(value || "").replace(/-/g, "");
+  return /^\d{6}$/.test(ym) ? ym : null;
+}
+
+function releaseMonthForUF(uf) {
+  const branch = String(process.env.VERCEL_GIT_COMMIT_REF || "");
+  const isCandidatePreview = branch === "onepage-ans-candidate";
+  const pointer = readReleasePointer(isCandidatePreview ? "candidate.json" : "approved.json");
+  const competence = normalizeCompetence(pointer?.competence);
+  const ufs = Array.isArray(pointer?.ufs) ? pointer.ufs.map(value => String(value).toUpperCase()) : [];
+
+  if (!competence) return null;
+  if (ufs.length && !ufs.includes(String(uf).toUpperCase())) return null;
+  if (!fs.existsSync(path.join(DATA_DIR, `ans_${uf}_${competence}.json`))) return null;
+
+  return competence;
 }
 
 // Lista meses disponíveis para um UF.
@@ -40,13 +80,18 @@ export function listMonthsForUF(uf) {
   }
 }
 
-// Mais recente disponível
+// Competência publicada. Produção usa o ponteiro aprovado; a branch de
+// homologação usa a candidata. Se os metadados ainda não existirem, mantém
+// compatibilidade com a lógica antiga e escolhe o arquivo mais recente.
 export function latestMonth(uf) {
+  const pinned = releaseMonthForUF(uf);
+  if (pinned) return pinned;
+
   const months = listMonthsForUF(uf);
   return months.length ? months[months.length - 1] : null;
 }
 
-// Dados de uma cidade num mês específico (ou mais recente).
+// Dados de uma cidade num mês específico (ou competência publicada).
 export function cityData(uf, cod6, ym) {
   ym = ym || latestMonth(uf);
   if (!ym) return null;
@@ -95,9 +140,11 @@ export function multiCityData(uf, cods, ym) {
   return { month: ym, total, mh, odonto, operadoras: ops, cities };
 }
 
-// Série histórica (todos os meses em cache para o UF).
+// Série histórica. Para produção, limita a série até a competência aprovada,
+// evitando que um arquivo candidato eventualmente presente seja consumido.
 export function historySeries(uf, cods) {
-  const months = listMonthsForUF(uf);
+  const published = latestMonth(uf);
+  const months = listMonthsForUF(uf).filter(ym => !published || ym <= published);
   const series = [];
   for (const ym of months) {
     const data = loadMonth(uf, ym);
