@@ -46,7 +46,6 @@ jobs:
   function formatCompetence(value) {
     const raw = String(value || "").trim();
     if (!raw || raw === "—") return null;
-
     const digits = raw.replace(/\D/g, "");
     let year = null;
     let month = null;
@@ -62,7 +61,6 @@ jobs:
     if (year && month >= 1 && month <= 12) {
       return `${MONTHS_PT[month - 1]}/${year}`;
     }
-
     return raw;
   }
 
@@ -75,26 +73,21 @@ jobs:
   }
 
   function ansCompetence(scope) {
-    return formatCompetence(
-      document.getElementById(`${scope}-ans-month`)?.textContent
-    );
+    return formatCompetence(document.getElementById(`${scope}-ans-month`)?.textContent);
   }
 
   async function leitosCompetence() {
-    const id = cityId();
-    const cod6 = id.slice(0, 6);
+    const cod6 = cityId().slice(0, 6);
     if (!cod6) return null;
-
     if (lastCityKey === cod6 && cachedLeitosComp) return cachedLeitosComp;
 
     try {
       const response = await fetch(`/proxy/elastic/leitos?cod=${encodeURIComponent(cod6)}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      const comp = formatCompetence(data?.comp);
+      cachedLeitosComp = formatCompetence(data?.comp);
       lastCityKey = cod6;
-      cachedLeitosComp = comp;
-      return comp;
+      return cachedLeitosComp;
     } catch (error) {
       console.warn("Falha ao consultar competência ElastiCNES:", error);
       return null;
@@ -106,52 +99,29 @@ jobs:
   }
 
   function cardSource(id) {
-    return document.getElementById(id)
-      ?.closest(".card")
-      ?.querySelector("p.muted");
+    return document.getElementById(id)?.closest(".card")?.querySelector("p.muted");
   }
 
   function updateElastiSources(comp) {
     if (!comp) return;
 
-    setText(
-      cardSource("micro-leitos-priv-evol"),
-      `Fonte: CNES · ElastiCNES · snapshots anuais; última competência: ${comp}.`
-    );
+    setText(cardSource("micro-leitos-priv-evol"), `Fonte: CNES · ElastiCNES · snapshots anuais; última competência: ${comp}.`);
+    setText(cardSource("city-leitos-priv-evol"), `Fonte: CNES · ElastiCNES · snapshots anuais; última competência: ${comp}.`);
+    setText(cardSource("micro-leitos-table"), `Fonte: CNES · ElastiCNES · competência ${comp}. Comparativo: microrregião de Porto Alegre.`);
+    setText(cardSource("city-leitos-table"), `Fonte: CNES · ElastiCNES · competência ${comp}.`);
 
-    setText(
-      cardSource("city-leitos-priv-evol"),
-      `Fonte: CNES · ElastiCNES · snapshots anuais; última competência: ${comp}.`
-    );
-
-    setText(
-      cardSource("micro-leitos-table"),
-      `Fonte: CNES · ElastiCNES · competência ${comp}. Comparativo: microrregião de Porto Alegre.`
-    );
-
-    setText(
-      cardSource("city-leitos-table"),
-      `Fonte: CNES · ElastiCNES · competência ${comp}.`
-    );
-
-    const top3 = document.getElementById("top3-hospitals")?.closest(".card");
-    if (top3) {
-      const source = [...top3.querySelectorAll("p.muted")][0];
+    const top3Card = document.getElementById("top3-hospitals")?.closest(".card");
+    if (top3Card) {
       setText(
-        source,
+        top3Card.querySelector("p.muted"),
         `Ranking por número total de leitos. Fonte: CNES · ElastiCNES · competência ${comp}.`
       );
     }
 
-    // Fallback global para qualquer texto antigo ainda visível no One Page.
     document.querySelectorAll("p.muted").forEach(node => {
-      const text = String(node.textContent || "");
-
-      if (/CNES\s*·?\s*ElastiCNES/i.test(text) && /snapshot anual|snapshots anuais|última competência disponível/i.test(text)) {
-        setText(
-          node,
-          `Fonte: CNES · ElastiCNES · snapshots anuais; última competência: ${comp}.`
-        );
+      const value = String(node.textContent || "");
+      if (/CNES\s*·?\s*ElastiCNES/i.test(value) && /snapshot anual|snapshots anuais|última competência disponível/i.test(value)) {
+        setText(node, `Fonte: CNES · ElastiCNES · snapshots anuais; última competência: ${comp}.`);
       }
     });
   }
@@ -161,10 +131,7 @@ jobs:
     const micro = ansCompetence("micro") || city;
 
     if (micro) {
-      setText(
-        cardSource("micro-ans-evol"),
-        `Fonte: ANS · PDA 024 · competência publicada: ${micro}.`
-      );
+      setText(cardSource("micro-ans-evol"), `Fonte: ANS · PDA 024 · competência publicada: ${micro}.`);
     }
 
     if (city) {
@@ -183,11 +150,7 @@ jobs:
   }
 
   function normalizeEmbeddedCompetences() {
-    [
-      "city-med-density-comp",
-      "city-ans-month",
-      "micro-ans-month"
-    ].forEach(id => {
+    ["city-med-density-comp", "city-ans-month", "micro-ans-month"].forEach(id => {
       const node = document.getElementById(id);
       if (!node) return;
       const formatted = formatCompetence(node.textContent);
@@ -198,8 +161,7 @@ jobs:
   async function refresh() {
     normalizeEmbeddedCompetences();
     updateAnsSources();
-    const comp = await leitosCompetence();
-    updateElastiSources(comp);
+    updateElastiSources(await leitosCompetence());
   }
 
   function schedule() {
@@ -209,15 +171,9 @@ jobs:
 
   function init() {
     schedule();
-
     const dashboard = document.getElementById("dashboard") || document.body;
     const observer = new MutationObserver(schedule);
-    observer.observe(dashboard, {
-      subtree: true,
-      childList: true,
-      characterData: true
-    });
-
+    observer.observe(dashboard, { subtree: true, childList: true, characterData: true });
     window.addEventListener("beforeprint", schedule);
   }
 
