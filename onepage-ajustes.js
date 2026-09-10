@@ -937,3 +937,202 @@
     initialize();
   }
 })();
+
+/* ===== Competências nas referências · v1 ===== */
+(() => {
+  "use strict";
+
+  const MONTHS_PT = [
+    "jan", "fev", "mar", "abr", "mai", "jun",
+    "jul", "ago", "set", "out", "nov", "dez"
+  ];
+  const competenceCache = new Map();
+  let refreshTimer = null;
+
+  function formatCompetence(value) {
+    const raw = String(value || "").trim();
+    if (!raw || raw === "—") return null;
+
+    const digits = raw.replace(/\D/g, "");
+    let year = null;
+    let month = null;
+
+    if (digits.length >= 6 && /^20\d{4}/.test(digits.slice(0, 6))) {
+      year = Number(digits.slice(0, 4));
+      month = Number(digits.slice(4, 6));
+    } else if (digits.length >= 6) {
+      month = Number(digits.slice(0, 2));
+      year = Number(digits.slice(2, 6));
+    }
+
+    if (year && month >= 1 && month <= 12) {
+      return `${MONTHS_PT[month - 1]}/${year}`;
+    }
+
+    return raw;
+  }
+
+  function currentCityId() {
+    try {
+      return typeof state !== "undefined" ? String(state?.city?.id || "") : "";
+    } catch {
+      return "";
+    }
+  }
+
+  function currentAnsCompetence(scope) {
+    return formatCompetence(
+      document.getElementById(`${scope}-ans-month`)?.textContent
+    );
+  }
+
+  async function currentLeitosCompetence(cityId) {
+    const cod6 = String(cityId || "").slice(0, 6);
+    if (!cod6) return null;
+    if (competenceCache.has(cod6)) return competenceCache.get(cod6);
+
+    try {
+      const response = await fetch(`/proxy/elastic/leitos?cod=${encodeURIComponent(cod6)}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const comp = formatCompetence(data?.comp);
+      competenceCache.set(cod6, comp);
+      return comp;
+    } catch (error) {
+      console.warn("Falha ao identificar competência do ElastiCNES:", error);
+      return null;
+    }
+  }
+
+  function setText(node, value) {
+    if (node && value && node.textContent !== value) node.textContent = value;
+  }
+
+  function cardSourceById(id) {
+    return document.getElementById(id)
+      ?.closest(".card")
+      ?.querySelector("p.muted");
+  }
+
+  function normalizeVisibleCompetence(id) {
+    const node = document.getElementById(id);
+    if (!node) return;
+    const value = formatCompetence(node.textContent);
+    if (value && node.textContent !== value) node.textContent = value;
+  }
+
+  function updateReferences(leitosComp) {
+    const ansCity = currentAnsCompetence("city");
+    const ansMicro = currentAnsCompetence("micro") || ansCity;
+    const ansComp = ansCity || ansMicro;
+
+    if (leitosComp) {
+      setText(
+        cardSourceById("micro-leitos-table"),
+        `Fonte: CNES · ElastiCNES · competência ${leitosComp}. Comparativo: microrregião de Porto Alegre.`
+      );
+      setText(
+        cardSourceById("city-leitos-table"),
+        `Fonte: CNES · ElastiCNES · competência ${leitosComp}.`
+      );
+      setText(
+        cardSourceById("micro-leitos-priv-evol"),
+        `Fonte: CNES · ElastiCNES · série anual por snapshots; última competência: ${leitosComp}.`
+      );
+      setText(
+        cardSourceById("city-leitos-priv-evol"),
+        `Fonte: CNES · ElastiCNES · série anual por snapshots; última competência: ${leitosComp}.`
+      );
+      setText(
+        cardSourceById("top3-hospitals"),
+        `Ranking por número total de leitos. Fonte: CNES · ElastiCNES · competência ${leitosComp}.`
+      );
+    }
+
+    if (ansMicro) {
+      setText(
+        cardSourceById("micro-ans-evol"),
+        `Fonte: ANS · PDA 024 · competência publicada ${ansMicro}.`
+      );
+    }
+
+    const cityAnsCard = document.getElementById("city-ans-evol")?.closest(".card");
+    if (cityAnsCard && ansCity) {
+      let source = cityAnsCard.querySelector("p.muted[data-source-competence='ans']");
+      if (!source) {
+        source = document.createElement("p");
+        source.className = "muted";
+        source.dataset.sourceCompetence = "ans";
+        cityAnsCard.appendChild(source);
+      }
+      setText(source, `Fonte: ANS · PDA 024 · competência publicada ${ansCity}.`);
+    }
+
+    if (ansCity) {
+      setText(
+        document.getElementById("city-summary-source"),
+        `Fontes: IBGE · Censo 2010/2022 e estimativa populacional anual; ANS · competência ${ansCity}; IBGE · Censo 2022 (renda).`
+      );
+      setText(
+        cardSourceById("city-profile"),
+        `Síntese baseada em IBGE · Censo 2022/CEMPRE e ANS · competência ${ansCity}.`
+      );
+    }
+
+    if (ansMicro) {
+      setText(
+        document.getElementById("micro-summary-source"),
+        `Fontes: IBGE · Censo 2022; ANS · competência ${ansMicro}; IBGE · Censo 2022 (renda).`
+      );
+    }
+
+    normalizeVisibleCompetence("city-med-density-comp");
+
+    const footer = document.querySelector("footer.foot p");
+    if (footer) {
+      const sources = [
+        "IBGE · Localidades, Censo 2010/2022, estimativas e CEMPRE",
+        leitosComp
+          ? `CNES/ElastiCNES · competência ${leitosComp}`
+          : "CNES/ElastiCNES",
+        ansComp
+          ? `ANS · PDA 024 · competência ${ansComp}`
+          : "ANS · PDA 024"
+      ];
+      setText(footer, `Fontes: ${sources.join("; ")}.`);
+    }
+  }
+
+  async function refresh() {
+    const cityId = currentCityId();
+    const leitosComp = cityId
+      ? await currentLeitosCompetence(cityId)
+      : null;
+    updateReferences(leitosComp);
+  }
+
+  function scheduleRefresh() {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(refresh, 400);
+  }
+
+  function init() {
+    scheduleRefresh();
+
+    const dashboard = document.getElementById("dashboard") || document.body;
+    const observer = new MutationObserver(scheduleRefresh);
+    observer.observe(dashboard, {
+      subtree: true,
+      childList: true,
+      characterData: true
+    });
+
+    window.addEventListener("beforeprint", scheduleRefresh);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
