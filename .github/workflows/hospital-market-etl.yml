@@ -1,0 +1,117 @@
+name: Hospital market ETL
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Fonte a processar
+        required: true
+        default: ALL
+        type: choice
+        options: [ALL, SIA, SIH, ANS]
+      competence:
+        description: Competência AAAA-MM; vazio usa mês fechado com defasagem segura
+        required: false
+        type: string
+      dry_run:
+        description: Coletar e validar sem gravar no Neon
+        required: true
+        default: true
+        type: boolean
+  schedule:
+    - cron: "17 5 12 * *"
+
+concurrency:
+  group: hospital-market-etl
+  cancel-in-progress: false
+
+jobs:
+  collect-and-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-etl.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-etl.txt
+
+      - name: Resolve parameters
+        id: params
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "source=${{ inputs.source }}" >> "$GITHUB_OUTPUT"
+            echo "competence=${{ inputs.competence }}" >> "$GITHUB_OUTPUT"
+            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=ALL" >> "$GITHUB_OUTPUT"
+            echo "competence=" >> "$GITHUB_OUTPUT"
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect official files
+        shell: bash
+        run: |
+          COMPETENCE_ARG=""
+          if [[ -n "${{ steps.params.outputs.competence }}" ]]; then
+            COMPETENCE_ARG="--competence ${{ steps.params.outputs.competence }}"
+          fi
+          python etl/collect_official_sources.py \
+            --source "${{ steps.params.outputs.source }}" \
+            $COMPETENCE_ARG
+
+      - name: Validate and load normalized files
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        shell: bash
+        run: |
+          EXTRA_ARGS=""
+          if [[ "${{ steps.params.outputs.dry_run }}" == "true" ]]; then
+            EXTRA_ARGS="--dry-run"
+          elif [[ -z "$DATABASE_URL" ]]; then
+            echo "DATABASE_URL não configurada" >&2
+            exit 1
+          fi
+
+          shopt -s nullglob
+          SOURCE="${{ steps.params.outputs.source }}"
+          declare -a SOURCES
+          if [[ "$SOURCE" == "ALL" ]]; then
+            SOURCES=(SIA SIH ANS)
+          else
+            SOURCES=("$SOURCE")
+          fi
+
+          for SRC in "${SOURCES[@]}"; do
+            DIR="data/hospital-market/normalized/${SRC,,}"
+            FILES=("$DIR"/*.csv.gz)
+            if (( ${#FILES[@]} == 0 )); then
+              echo "Sem arquivo normalizado para $SRC; fonte pode ainda não ter publicado a competência."
+              continue
+            fi
+            for FILE in "${FILES[@]}"; do
+              python etl/run_hospital_market_pipeline.py \
+                --source "$SRC" \
+                --input "$FILE" \
+                $EXTRA_ARGS
+            done
+          done
+
+      - name: Upload normalized audit files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hospital-market-normalized-${{ github.run_id }}
+          path: data/hospital-market/normalized/**/*.csv.gz
+          if-no-files-found: warn
+          retention-days: 14
