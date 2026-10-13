@@ -137,12 +137,18 @@
         <h3>População por município — ordem decrescente</h3>
         <div class="table-wrap">
           <table class="table" id="micro-pop-table">
-            <thead><tr><th>Município</th><th class="num">População 2022</th><th class="num">% Microrregião</th></tr></thead>
+            <thead><tr>
+              <th>Município</th>
+              <th class="num">População 2022</th>
+              <th class="num">% Microrregião</th>
+              <th class="num">Beneficiários ANS</th>
+              <th class="num">Cobertura ANS</th>
+            </tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
           </table>
         </div>
-        <p class="muted">Fonte: IBGE · Censo Demográfico 2022 (agregado 9514).</p>
+        <p class="muted">Fontes: IBGE · Censo Demográfico 2022 (agregado 9514); ANS · PDA 024 · competência publicada <span id="micro-pop-ans-month">—</span>. Cobertura ANS = beneficiários médico-hospitalares ÷ população do município.</p>
       </div>
 
       <div class="kpis">
@@ -517,7 +523,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./iqm-2025.js?v=1"></script>
-<script src="app.js?v=69"></script>
+<script src="app.js?v=70"></script>
 <script src="onepage-ajustes.js?v=1"></script>
 </body>
 </html>
