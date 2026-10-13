@@ -1357,12 +1357,13 @@ state.estabsPOAMicro = estabsPOAMicro;
     showLoader("Carregando saúde suplementar (ANS)…");
     const cityCod6 = String(ibgeId).slice(0,6);
     const microCods6 = microIds.map(i => i.slice(0,6)).join(",");
-    const [ansCityRaw, ansMicroRaw, ansHistCityRaw, ansHistMicroRaw, ansCaxiasRawRef] = await Promise.all([
+    const [ansCityRaw, ansMicroRaw, ansHistCityRaw, ansHistMicroRaw, ansCaxiasRawRef, ansByCity] = await Promise.all([
   fetchAnsSingle(ufSigla, cityCod6).catch(() => null),
   fetchAnsMulti(ufSigla, microCods6).catch(() => null),
   fetchAnsHistory(ufSigla, cityCod6).catch(() => ({ series: [] })),
   fetchAnsHistory(ufSigla, microCods6).catch(() => ({ series: [] })),
   fetchAnsSingle("RS", CAXIAS_CNES).catch(() => null),
+  fetchAnsMHByMunicipios(ufSigla, microIds).catch(() => ({})),
 ]);
 
 const ansCity = ansMHOnly(ansCityRaw);
@@ -1401,7 +1402,7 @@ const ansCaxiasRef = ansMHOnly(ansCaxiasRawRef);
     // ======= RENDER =======
     // Micro tab
     renderMicroList();
-    renderMicroPopTable(popByCity);
+    renderMicroPopTable(popByCity, ansByCity);
     renderMicroMap(microMun);
     renderMicroKPIs(popByCity, pyramidMicro, ansMicro);
     renderGenderPie("micro", pyramidMicro);
@@ -1499,6 +1500,7 @@ await renderIQMandBubble({
   popByCity,
   leitosMicro,
   poaRef,
+  ansByCity,
 });
 
     // Infra tab
@@ -1863,28 +1865,54 @@ function renderMicroList() {
   }
 }
 
-function renderMicroPopTable(popByCity) {
+function renderMicroPopTable(popByCity, ansByCity = {}) {
   const tbody = $("#micro-pop-table tbody");
   const tfoot = $("#micro-pop-table tfoot");
   tbody.innerHTML = ""; tfoot.innerHTML = "";
+
   const rows = state.micro.municipios
-    .map(m => ({ ...m, pop: popByCity[m.id] || 0 }))
+    .map(m => {
+      const pop = Number(popByCity[m.id] || 0);
+      const ans = ansByCity[m.id] || null;
+      const beneficiarios = Number(ans?.total || 0);
+
+      return {
+        ...m,
+        pop,
+        beneficiarios,
+        cobertura: pop > 0 ? beneficiarios / pop : null,
+        ansMonth: ans?.month || null,
+      };
+    })
     .sort((a, b) => b.pop - a.pop);
-  const total = rows.reduce((a, b) => a + b.pop, 0);
+
+  const total = rows.reduce((sum, row) => sum + row.pop, 0);
+  const totalBeneficiarios = rows.reduce((sum, row) => sum + row.beneficiarios, 0);
+
   for (const r of rows) {
     const tr = el("tr", r.id === state.city.id ? { class: "current" } : {},
       el("td", {}, r.nome),
       el("td", { class: "num" }, fmt(r.pop)),
       el("td", { class: "num" }, pct(r.pop, total)),
+      el("td", { class: "num" }, r.beneficiarios > 0 ? fmt(r.beneficiarios) : "—"),
+      el("td", { class: "num" }, r.cobertura != null ? pct(r.beneficiarios, r.pop) : "—"),
     );
+
     if (r.id === state.city.id) tr.style.background = "rgba(26,53,102,0.08)";
     tbody.append(tr);
   }
+
   tfoot.append(el("tr", {},
     el("td", {}, "TOTAL MICRORREGIÃO"),
     el("td", { class: "num" }, fmt(total)),
     el("td", { class: "num" }, "100%"),
+    el("td", { class: "num" }, totalBeneficiarios > 0 ? fmt(totalBeneficiarios) : "—"),
+    el("td", { class: "num" }, total > 0 ? pct(totalBeneficiarios, total) : "—"),
   ));
+
+  const ansMonth = rows.map(r => r.ansMonth).find(Boolean);
+  const ansMonthEl = document.getElementById("micro-pop-ans-month");
+  if (ansMonthEl) ansMonthEl.textContent = ansMonth ? monthLabel(ansMonth) : "—";
 }
 
 function renderMicroMap(microMun) {
@@ -3278,13 +3306,16 @@ async function buildRegionalBubblePoints({
   cityLeitos,
   cityAns,
   ansMicro,
-  poaRef
+  poaRef,
+  ansByCity: ansByCityInput = null
 }) {
   const microIds = state.micro.municipios.map(m => String(m.id));
   const cityCod6 = String(cityIbge).slice(0, 6);
 
   const [ansByCity, pibByCityRaw, refPopByCity, ansCaxiasRaw, leitosCaxias] = await Promise.all([
-  fetchAnsMHByMunicipios(cityUF, microIds).catch(() => ({})),
+  ansByCityInput
+    ? Promise.resolve(ansByCityInput)
+    : fetchAnsMHByMunicipios(cityUF, microIds).catch(() => ({})),
 
   // Inclui também POA e Caxias na busca em lote do PIB.
   fetchPIBByMunicipios([...microIds, CAXIAS_IBGE, POA_IBGE]).catch(() => ({})),
@@ -3497,7 +3528,7 @@ async function renderIQMandBubble(ctx) {
   const {
     cityIbge, cityName, cityUF, cityPop, censo2010,
     cityLeitos, cityAns, cityAnsHist, cityRendimento, ansMicro,
-    estabsCity, popByCity, leitosMicro, poaRef,
+    estabsCity, popByCity, leitosMicro, poaRef, ansByCity,
   } = ctx;
 
   const cityHospHospitalar = hospitalCountForIQM(estabsCity, cityLeitos);
@@ -3708,6 +3739,7 @@ async function renderIQMandBubble(ctx) {
       cityAns,
       ansMicro,
       poaRef,
+      ansByCity,
     });
 
     renderBubbleChart(points);
