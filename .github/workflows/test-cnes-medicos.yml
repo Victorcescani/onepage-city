@@ -35,7 +35,8 @@ jobs:
       - name: Instalar dependências
         shell: Rscript {0}
         run: |
-          install.packages(c("read.dbc", "jsonlite", "curl"))
+          install.packages(c("jsonlite", "curl"))
+          install.packages("https://github.com/danicat/read.dbc/archive/refs/heads/master.tar.gz", repos = NULL, type = "source")
 
       - name: Gerar base de médicos
         env:
