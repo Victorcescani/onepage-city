@@ -1,4 +1,4 @@
-import { elasticSearch, medicosPorCidade } from "../_lib/elastic.js";
+import { medicosPorCidade } from "../_lib/elastic.js";
 
 export default async function handler(req, res) {
   try {
@@ -11,52 +11,19 @@ export default async function handler(req, res) {
       });
     }
 
-
-    if (req.query.debug === "page") {
-      const rr = await fetch("https://elasticnes.saude.gov.br/profissionais", {
-        headers: { "User-Agent": "pesquisa-cidade/1.0" },
-      });
-      const html = await rr.text();
-      const scripts = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map((m) => m[1]);
-      const links = [...html.matchAll(/<link[^>]+href=["']([^"']+)["']/gi)].map((m) => m[1]);
-      return res.status(200).json({ status: rr.status, scripts, links, preview: html.slice(0, 4000) });
-    }
-
     if (req.query.debug === "api") {
       const cod6 = ibge.length >= 6 ? ibge.slice(0, 6) : ibge;
       const target = "https://apidadosabertos.saude.gov.br/assistencia-a-saude/cnes-profissionais" +
-        "?co_ibge=" + encodeURIComponent(cod6) + "&limit=5&offset=0";
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 12000);
-      try {
-        const rr = await fetch(target, {
-          headers: { Accept: "application/json", "User-Agent": "pesquisa-cidade/1.0" },
-          signal: controller.signal,
-        });
-        const reader = rr.body?.getReader();
-        const first = reader ? await reader.read() : { value: null, done: true };
-        if (reader) await reader.cancel().catch(() => {});
-        const preview = first.value ? new TextDecoder().decode(first.value).slice(0, 5000) : "";
-        clearTimeout(timer);
-        return res.status(200).json({
-          upstreamStatus: rr.status,
-          contentType: rr.headers.get("content-type"),
-          contentLength: rr.headers.get("content-length"),
-          preview,
-        });
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-
-    if (req.query.debug === "1" && comp) {
-      const raw = await elasticSearch(`cnes-profissionais-${comp}`, { size: 1, query: { match_all: {} } });
-      const hit = raw?.rawResponse?.hits?.hits?.[0] || null;
+        "?nu_comp=202608&co_ibge=" + encodeURIComponent(cod6) + "&limit=5&offset=0";
+      const rr = await fetch(target, {
+        headers: { Accept: "application/json", "User-Agent": "pesquisa-cidade/1.0" },
+      });
+      const payload = await rr.json();
       return res.status(200).json({
-        comp,
-        totalHits: raw?.rawResponse?.hits?.total || null,
-        source: hit?._source || null,
-        fields: hit?.fields || null,\n        raw,
+        upstreamStatus: rr.status,
+        type: Array.isArray(payload) ? "array" : typeof payload,
+        keys: payload && typeof payload === "object" && !Array.isArray(payload) ? Object.keys(payload) : [],
+        sample: Array.isArray(payload) ? payload.slice(0, 2) : payload,
       });
     }
 
