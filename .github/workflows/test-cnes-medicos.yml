@@ -1,4 +1,4 @@
-name: Testar CNES médicos
+name: Atualizar CNES médicos
 
 on:
   push:
@@ -7,12 +7,10 @@ on:
     paths:
       - "scripts/gerar_cnes_medicos.R"
       - ".github/workflows/test-cnes-medicos.yml"
+  schedule:
+    - cron: "20 8 5 * *"
   workflow_dispatch:
     inputs:
-      uf:
-        description: "UF a processar"
-        required: false
-        default: "RS"
       competencia:
         description: "Competência AAAAMM, vazio = descobrir automaticamente"
         required: false
@@ -38,25 +36,27 @@ jobs:
           install.packages(c("jsonlite", "curl"))
           install.packages("https://github.com/danicat/read.dbc/archive/refs/heads/master.tar.gz", repos = NULL, type = "source")
 
-      - name: Gerar base de médicos
+      - name: Gerar bases de médicos
         env:
-          UF_INPUT: ${{ github.event.inputs.uf || 'RS' }}
           COMP_INPUT: ${{ github.event.inputs.competencia || '' }}
         run: |
-          Rscript scripts/gerar_cnes_medicos.R "$UF_INPUT" "$COMP_INPUT"
+          Rscript scripts/gerar_cnes_medicos.R "RS" "$COMP_INPUT"
+          Rscript scripts/gerar_cnes_medicos.R "SC" "$COMP_INPUT"
 
       - name: Validar JSON
         run: |
-          test -s "data/cnes_medicos_${{ github.event.inputs.uf || 'RS' }}.json"
+          test -s "data/cnes_medicos_RS.json"
+          test -s "data/cnes_medicos_SC.json"
           python - <<'PY'
           import json
-          p = "data/cnes_medicos_${{ github.event.inputs.uf || 'RS' }}.json"
-          d = json.load(open(p, encoding="utf-8"))
-          assert d["cities"], "cities vazio"
+          for uf in ("RS", "SC"):
+              p = f"data/cnes_medicos_{uf}.json"
+              d = json.load(open(p, encoding="utf-8"))
+              assert d["cities"], f"{uf}: cities vazio"
+              print(uf, "competencia", d["comp"], "municipios", len(d["cities"]))
+          rs = json.load(open("data/cnes_medicos_RS.json", encoding="utf-8"))
           for cod in ("431680", "430510", "431490"):
-              if cod in d["cities"]:
-                  print(cod, d["cities"][cod]["total"])
-          print("competencia", d["comp"], "municipios", len(d["cities"]))
+              print(cod, rs["cities"][cod]["total"])
           PY
 
       - name: Commit do JSON de teste
