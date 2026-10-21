@@ -1164,26 +1164,42 @@ function totalMedicosFromPayload(data) {
   return approx > 0 ? approx : null;
 }
 
+const MEDICOS_STATIC_CACHE = {};
+
+function ufFromIbge(ibgeId) {
+  const prefix = String(ibgeId || "").replace(/\D/g, "").slice(0, 2);
+  if (prefix === "43") return "RS";
+  if (prefix === "42") return "SC";
+  return null;
+}
+
 async function fetchMedicosByIbgeWithFallback(ibgeId) {
-  const id7 = String(ibgeId);
+  const id7 = String(ibgeId || "").replace(/\D/g, "");
   const id6 = id7.slice(0, 6);
+  const uf = ufFromIbge(id7);
 
-  const urls = [
-    `${MEDICOS}?ibge=${id7}`,
-    `${MEDICOS}?cod=${id6}`,
-    `${MEDICOS}?codigo_municipio=${id6}`,
-  ];
+  // RS e SC usam snapshot mensal CNES-PF pré-processado.
+  // Isso evita depender do índice interno do ElastiCNES em tempo real.
+  if (uf) {
+    if (!MEDICOS_STATIC_CACHE[uf]) {
+      MEDICOS_STATIC_CACHE[uf] = await getJSON(`/data/cnes_medicos_${uf}.json`).catch(() => null);
+    }
 
-  let best = null;
-
-  for (const url of urls) {
-    const data = await getJSON(url).catch(() => null);
-    if (!data) continue;
-    if (!best) best = data;
-    if (totalMedicosFromPayload(data)) return data;
+    const base = MEDICOS_STATIC_CACHE[uf];
+    const city = base?.cities?.[id6];
+    if (city) {
+      return {
+        comp: base.comp || null,
+        ibge: id7,
+        total: Number(city.total || 0),
+        especialidades: Array.isArray(city.especialidades) ? city.especialidades : [],
+        source: base.source || "CNES/DATASUS CNES-PF",
+      };
+    }
   }
 
-  return best;
+  // Fallback temporário para UFs sem snapshot local.
+  return getJSON(`${MEDICOS}?ibge=${id7}`).catch(() => null);
 }
 
 function renderMedicosHabitantesKPI({
@@ -1390,8 +1406,8 @@ const ansCaxiasRef = ansMHOnly(ansCaxiasRawRef);
       getJSON(`${SERVICOS}?cod=${cityCod6}&cnes=${h.cnes}`).catch(() => ({ servicos: [] }))
     ));
 
-    // 7) Densidade médica via ElastiCNES — cidade selecionada + referências
-    showLoader("Carregando densidade médica (ElastiCNES)…");
+    // 7) Densidade médica via CNES-PF — cidade selecionada + referências
+    showLoader("Carregando densidade médica (CNES)…");
     const [refPopByCity, medicosCity, medicosCaxias, medicosPOA] = await Promise.all([
       fetchPopByMunicipios([CAXIAS_IBGE, POA_IBGE]).catch(() => ({})),
       fetchMedicosByIbgeWithFallback(String(ibgeId)).catch(() => null),
