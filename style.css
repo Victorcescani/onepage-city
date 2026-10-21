@@ -1582,3 +1582,18 @@ body.print-executive img.print-snapshot {
     break-after: avoid !important;
   }
 }
+
+/* Municipal research button is on a light card, unlike header ghost buttons. */
+.local-context .btn-ghost {
+  color: #fff;
+  background: #1a3566;
+  border: 1px solid #1a3566;
+  margin: 4px 0 8px;
+}
+.local-context .btn-ghost:hover { background: #284c89; }
+.local-context .btn-ghost:disabled { opacity: .6; cursor: wait; }
+.local-context .btn-ghost:focus-visible { outline: 3px solid #7199d6; outline-offset: 3px; }
+#local-context-result p { line-height: 1.65; max-width: 110ch; }
+#local-context-result a { color: #1a3566; overflow-wrap: anywhere; text-decoration: underline; }
+#local-context-result summary { cursor: pointer; font-weight: 700; margin-top: 12px; }
+#local-context-result li { margin: 6px 0; }

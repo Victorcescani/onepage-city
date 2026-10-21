@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>One Page — Pesquisa de Cidades</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="style.css?v=66">
+<link rel="stylesheet" href="style.css?v=67">
 <link rel="stylesheet" href="onepage-ajustes.css?v=1">
 </head>
 <body>
@@ -77,6 +77,14 @@
         <p id="city-sub" class="sub">—</p>
       </div>
     </div>
+
+    <section class="card local-context" aria-labelledby="local-context-title">
+      <h3 id="local-context-title">Contexto Econômico e Produtivo da Cidade</h3>
+      <p class="muted" id="local-context-city">Selecione um município.</p>
+      <button type="button" class="btn-ghost" id="local-context-button" disabled>Analisar contexto local</button>
+      <p id="local-context-status" class="muted" role="status" aria-live="polite">Pesquisa sob demanda em fontes públicas. Não interfere no IQM.</p>
+      <div id="local-context-result" hidden></div>
+    </section>
 
     <!-- ================= RESUMO ESTRATÉGICO ================= -->
      <div class="card iqm-card">
@@ -367,8 +375,8 @@
           </table>
         </div>
         <p class="muted">
-          Fonte: ElastiCNES/CNES · competência <span id="city-med-density-comp">—</span>.
-          Médicos únicos deduplicados por CNS. Referências calculadas com a mesma regra para Caxias do Sul e Porto Alegre.
+          Fonte: CNES/DATASUS · CNES-PF · competência <span id="city-med-density-comp">—</span>.
+          Médicos cadastrados em estabelecimentos do município (SUS e privados), não residentes. CBO 225*, deduplicados por CNS. Um médico pode aparecer em mais de uma especialidade; as linhas não devem ser somadas. Densidades usam a população do Censo 2022. Referências seguem a mesma regra e competência; “—” indica informação indisponível.
         </p>
       </div>
 
@@ -523,7 +531,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./iqm-2025.js?v=1"></script>
-<script src="app.js?v=70"></script>
+<script src="local-context.js?v=1"></script>
+<script src="app.js?v=71"></script>
 <script src="onepage-ajustes.js?v=1"></script>
 </body>
 </html>
