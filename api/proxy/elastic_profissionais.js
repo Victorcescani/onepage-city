@@ -11,6 +11,16 @@ export default async function handler(req, res) {
       });
     }
 
+    if (req.query.debug === "page") {
+      const rr = await fetch("https://elasticnes.saude.gov.br/profissionais", {
+        headers: { "User-Agent": "pesquisa-cidade/1.0" },
+      });
+      const html = await rr.text();
+      const scripts = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map((m) => m[1]);
+      const links = [...html.matchAll(/<link[^>]+href=["']([^"']+)["']/gi)].map((m) => m[1]);
+      return res.status(200).json({ status: rr.status, scripts, links });
+    }
+
     if (req.query.debug === "elastic") {
       const debugIndex = String(req.query.index || "cnes-profissionais-202608").replace(/[^a-zA-Z0-9_*?,.-]/g, "");\n      const raw = await elasticSearch(debugIndex, { size: 1, query: { match_all: {} } });
       const rr = raw?.rawResponse;
