@@ -12,6 +12,16 @@ export default async function handler(req, res) {
     }
 
 
+    if (req.query.debug === "page") {
+      const rr = await fetch("https://elasticnes.saude.gov.br/profissionais", {
+        headers: { "User-Agent": "pesquisa-cidade/1.0" },
+      });
+      const html = await rr.text();
+      const scripts = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map((m) => m[1]);
+      const links = [...html.matchAll(/<link[^>]+href=["']([^"']+)["']/gi)].map((m) => m[1]);
+      return res.status(200).json({ status: rr.status, scripts, links, preview: html.slice(0, 4000) });
+    }
+
     if (req.query.debug === "api") {
       const cod6 = ibge.length >= 6 ? ibge.slice(0, 6) : ibge;
       const target = "https://apidadosabertos.saude.gov.br/assistencia-a-saude/cnes-profissionais" +
