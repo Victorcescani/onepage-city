@@ -11,6 +11,19 @@ export default async function handler(req, res) {
       });
     }
 
+
+    if (req.query.debug === "api") {
+      const cod6 = ibge.length >= 6 ? ibge.slice(0, 6) : ibge;
+      const url = new URL("https://apidadosabertos.saude.gov.br/assistencia-a-saude/cnes-profissionais");
+      url.searchParams.set("co_ibge", cod6);
+      url.searchParams.set("limit", "5");
+      url.searchParams.set("offset", "0");
+      const rr = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "pesquisa-cidade/1.0" } });
+      const txt = await rr.text();
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      return res.status(rr.status).send(txt);
+    }
+
     if (req.query.debug === "1" && comp) {
       const raw = await elasticSearch(`cnes-profissionais-${comp}`, { size: 1, query: { match_all: {} } });
       const hit = raw?.rawResponse?.hits?.hits?.[0] || null;
