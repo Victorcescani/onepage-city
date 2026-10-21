@@ -16,6 +16,10 @@ on:
         required: false
         default: ""
 
+concurrency:
+  group: cnes-medicos-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
