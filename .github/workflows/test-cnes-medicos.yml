@@ -68,5 +68,6 @@ jobs:
             echo "Sem alterações."
           else
             git commit -m "data: atualizar médicos CNES [skip cnes]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
             git push
           fi
