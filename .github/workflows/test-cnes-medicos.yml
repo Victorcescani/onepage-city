@@ -1,0 +1,71 @@
+name: Testar CNES médicos
+
+on:
+  push:
+    branches:
+      - fix/medical-density-profile
+    paths:
+      - "scripts/gerar_cnes_medicos.R"
+      - ".github/workflows/test-cnes-medicos.yml"
+  workflow_dispatch:
+    inputs:
+      uf:
+        description: "UF a processar"
+        required: false
+        default: "RS"
+      competencia:
+        description: "Competência AAAAMM, vazio = descobrir automaticamente"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Instalar dependências
+        shell: Rscript {0}
+        run: |
+          install.packages(c("read.dbc", "jsonlite", "curl"))
+
+      - name: Gerar base de médicos
+        env:
+          UF_INPUT: ${{ github.event.inputs.uf || 'RS' }}
+          COMP_INPUT: ${{ github.event.inputs.competencia || '' }}
+        run: |
+          Rscript scripts/gerar_cnes_medicos.R "$UF_INPUT" "$COMP_INPUT"
+
+      - name: Validar JSON
+        run: |
+          test -s "data/cnes_medicos_${{ github.event.inputs.uf || 'RS' }}.json"
+          python - <<'PY'
+          import json
+          p = "data/cnes_medicos_${{ github.event.inputs.uf || 'RS' }}.json"
+          d = json.load(open(p, encoding="utf-8"))
+          assert d["cities"], "cities vazio"
+          for cod in ("431680", "430510", "431490"):
+              if cod in d["cities"]:
+                  print(cod, d["cities"][cod]["total"])
+          print("competencia", d["comp"], "municipios", len(d["cities"]))
+          PY
+
+      - name: Commit do JSON de teste
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/cnes_medicos_*.json
+          if git diff --cached --quiet; then
+            echo "Sem alterações."
+          else
+            git commit -m "data: atualizar médicos CNES [skip cnes]"
+            git push
+          fi
