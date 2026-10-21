@@ -1,4 +1,4 @@
-import { medicosPorCidade } from "../_lib/elastic.js";
+import { elasticSearch, medicosPorCidade } from "../_lib/elastic.js";
 
 export default async function handler(req, res) {
   try {
@@ -8,6 +8,28 @@ export default async function handler(req, res) {
     if (!ibge) {
       return res.status(400).json({
         error: "Informe o parâmetro ibge.",
+      });
+    }
+
+    if (req.query.debug === "elastic") {
+      const raw = await elasticSearch("cnes-profissionais-202608", { size: 1, query: { match_all: {} } });
+      const rr = raw?.rawResponse;
+      return res.status(200).json({
+        rawKeys: raw && typeof raw === "object" ? Object.keys(raw) : [],
+        id: raw?.id ?? null,
+        isPartial: raw?.isPartial ?? null,
+        isRunning: raw?.isRunning ?? null,
+        total: raw?.total ?? null,
+        loaded: raw?.loaded ?? null,
+        rawResponseType: rr == null ? null : typeof rr,
+        rawResponseKeys: rr && typeof rr === "object" ? Object.keys(rr) : [],
+        rawResponseError: rr?.error ?? null,
+        rawResponseStatus: rr?.status ?? null,
+        rawResponseHits: rr?.hits ? {
+          total: rr.hits.total ?? null,
+          count: Array.isArray(rr.hits.hits) ? rr.hits.hits.length : null,
+          first: Array.isArray(rr.hits.hits) ? rr.hits.hits[0] ?? null : null,
+        } : null,
       });
     }
 
