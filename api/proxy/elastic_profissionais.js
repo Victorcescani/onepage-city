@@ -12,10 +12,10 @@ export default async function handler(req, res) {
     }
 
     if (req.query.debug === "elastic") {
-      const raw = await elasticSearch("cnes-profissionais-202608", { size: 1, query: { match_all: {} } });
+      const debugIndex = String(req.query.index || "cnes-profissionais-202608").replace(/[^a-zA-Z0-9_*?,.-]/g, "");\n      const raw = await elasticSearch(debugIndex, { size: 1, query: { match_all: {} } });
       const rr = raw?.rawResponse;
       return res.status(200).json({
-        rawKeys: raw && typeof raw === "object" ? Object.keys(raw) : [],
+        debugIndex,\n        rawKeys: raw && typeof raw === "object" ? Object.keys(raw) : [],
         id: raw?.id ?? null,
         isPartial: raw?.isPartial ?? null,
         isRunning: raw?.isRunning ?? null,
