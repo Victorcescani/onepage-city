@@ -1124,82 +1124,34 @@ function renderPOAReferences(ref, caxias = null) {
 }
 
 function totalMedicosFromPayload(data) {
-  if (!data) return null;
-
-  const candidates = [
-    data.total,
-    data.total_medicos,
-    data.medicos_total,
-    data.qtd_medicos,
-    data.quantidade,
-  ];
-
-  for (const value of candidates) {
-    const n = Number(value);
-    if (Number.isFinite(n) && n > 0) return n;
-  }
-
-  const especialidades = Array.isArray(data.especialidades) ? data.especialidades : [];
-
-  const totalRow = especialidades.find(r => {
-    const label = String(r.especialidade || r.cbo || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase();
-    return label.includes("TOTAL");
-  });
-
-  if (totalRow) {
-    const totalFromRow = Number(totalRow.medicos || totalRow.total || totalRow.quantidade || 0);
-    if (Number.isFinite(totalFromRow) && totalFromRow > 0) return totalFromRow;
-  }
-
-  // Fallback defensivo: se a API não trouxer campo total, usa a soma das
-  // especialidades como aproximação. O ideal é usar `total`, mas isto evita
-  // que POA/Caxias desapareçam quando o payload vier incompleto.
-  const approx = especialidades.reduce((sum, r) => {
-    return sum + Number(r.medicos || r.total || r.quantidade || 0);
-  }, 0);
-
-  return approx > 0 ? approx : null;
+  // Especialidades se sobrepõem: sua soma nunca representa pessoas únicas.
+  return Number.isInteger(data?.total) && data.total >= 0 ? data.total : null;
 }
 
 const MEDICOS_STATIC_CACHE = {};
 
 function ufFromIbge(ibgeId) {
-  const prefix = String(ibgeId || "").replace(/\D/g, "").slice(0, 2);
-  if (prefix === "43") return "RS";
-  if (prefix === "42") return "SC";
-  return null;
+  return ({ "43": "RS", "42": "SC" })[String(ibgeId).slice(0, 2)] || null;
 }
 
 async function fetchMedicosByIbgeWithFallback(ibgeId) {
-  const id7 = String(ibgeId || "").replace(/\D/g, "");
-  const id6 = id7.slice(0, 6);
+  const id7 = String(ibgeId);
   const uf = ufFromIbge(id7);
-
-  // RS e SC usam snapshot mensal CNES-PF pré-processado.
-  // Isso evita depender do índice interno do ElastiCNES em tempo real.
-  if (uf) {
-    if (!MEDICOS_STATIC_CACHE[uf]) {
-      MEDICOS_STATIC_CACHE[uf] = await getJSON(`/data/cnes_medicos_${uf}.json`).catch(() => null);
-    }
-
-    const base = MEDICOS_STATIC_CACHE[uf];
-    const city = base?.cities?.[id6];
-    if (city) {
-      return {
-        comp: base.comp || null,
-        ibge: id7,
-        total: Number(city.total || 0),
-        especialidades: Array.isArray(city.especialidades) ? city.especialidades : [],
-        source: base.source || "CNES/DATASUS CNES-PF",
-      };
-    }
+  if (!/^\d{7}$/.test(id7) || !uf) return null;
+  // Compartilha a Promise entre cidade e benchmarks; permite repetir após falha.
+  if (!MEDICOS_STATIC_CACHE[uf]) {
+    MEDICOS_STATIC_CACHE[uf] = getJSON(`/data/cnes_medicos_${uf}.json`).catch(() => {
+      delete MEDICOS_STATIC_CACHE[uf];
+      return null;
+    });
   }
-
-  // Fallback temporário para UFs sem snapshot local.
-  return getJSON(`${MEDICOS}?ibge=${id7}`).catch(() => null);
+  const base = await MEDICOS_STATIC_CACHE[uf];
+  const city = base?.cities?.[id7.slice(0, 6)];
+  if (base?.uf !== uf || !/^\d{4}(0[1-9]|1[0-2])$/.test(base?.comp || "") ||
+      totalMedicosFromPayload(city) == null || !Array.isArray(city?.especialidades) ||
+      !city.especialidades.every(r => /^225\d{3}$/.test(r.cbo) &&
+        Number.isInteger(r.medicos) && r.medicos >= 0 && r.medicos <= city.total)) return null;
+  return { ...city, comp: base.comp, ibge: id7, source: base.source };
 }
 
 function renderMedicosHabitantesKPI({
@@ -1219,7 +1171,7 @@ function renderMedicosHabitantesKPI({
     const medicos = totalMedicosFromPayload(payloadMedicos);
     populacao = Number(populacao) || 0;
 
-    if (!medicos || !populacao) return null;
+    if (medicos == null || !populacao) return null;
     return (medicos / populacao) * 10000;
   };
 
@@ -1245,6 +1197,7 @@ function renderMedicosHabitantesKPI({
  
 /* ===== Orchestrator ===== */
 async function selectCity(ibgeId, name, uf) {
+  window.localContext?.reset();
   $("#suggestions").hidden = true;
   $("#search").value = `${name} — ${uf}`;
   $("#landing").hidden = true;
@@ -1264,6 +1217,7 @@ window.scrollTo({ top: 0, behavior: "smooth" });
     const mesor = loc.microrregiao.mesorregiao.nome;
 
     state.city = { id: String(ibgeId), name: loc.nome, uf: ufSigla, ufNome, mesor, microNome, microId };
+    window.localContext?.select(state.city);
     state.micro.id = microId;
     state.micro.nome = microNome;
 
@@ -2336,9 +2290,9 @@ function titleCaseMedical(label) {
 }
 
 function medDensity(medicos, pop) {
-  medicos = Number(medicos) || 0;
-  pop = Number(pop) || 0;
-  return pop ? (medicos / pop) * 10000 : null;
+  if (medicos == null || !Number.isFinite(Number(medicos))) return null;
+  pop = Number(pop);
+  return pop > 0 ? (Number(medicos) / pop) * 10000 : null;
 }
 
 function medMapByCbo(data) {
@@ -2402,7 +2356,7 @@ function renderMedicalDensityTable({ cidade, caxias, poa, popCidade, popCaxias, 
   tbody.innerHTML = "";
 
   const compEl = $("#city-med-density-comp");
-  if (compEl) compEl.textContent = cidade?.comp || caxias?.comp || poa?.comp || "—";
+  if (compEl) compEl.textContent = cidade?.comp || "indisponível";
 
   if (!cidade || !Array.isArray(cidade.especialidades)) {
     tbody.append(el("tr", {},
@@ -2438,9 +2392,9 @@ function renderMedicalDensityTable({ cidade, caxias, poa, popCidade, popCaxias, 
 
   appendRow({
     label: "TOTAL DE MÉDICOS",
-    medCidade: cidade.total || 0,
-    medCaxias: caxias?.total || 0,
-    medPoa: poa?.total || 0,
+    medCidade: totalMedicosFromPayload(cidade),
+    medCaxias: caxias?.comp === cidade.comp ? totalMedicosFromPayload(caxias) : null,
+    medPoa: poa?.comp === cidade.comp ? totalMedicosFromPayload(poa) : null,
     bold: true
   });
 
@@ -2477,9 +2431,9 @@ function renderMedicalDensityTable({ cidade, caxias, poa, popCidade, popCaxias, 
 
       appendRow({
         label: r.especialidade || r.cbo,
-        medCidade: r.medicos || 0,
-        medCaxias: cx?.medicos || 0,
-        medPoa: pr?.medicos || 0
+        medCidade: r.medicos ?? null,
+        medCaxias: caxias?.comp === cidade.comp ? (cx?.medicos ?? null) : null,
+        medPoa: poa?.comp === cidade.comp ? (pr?.medicos ?? null) : null
       });
     }
   }

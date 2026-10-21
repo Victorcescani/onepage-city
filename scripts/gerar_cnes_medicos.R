@@ -4,6 +4,9 @@ args <- commandArgs(trailingOnly = TRUE)
 uf <- if (length(args) >= 1 && nzchar(args[1])) toupper(args[1]) else "RS"
 forced_comp <- if (length(args) >= 2 && nzchar(args[2])) args[2] else ""
 
+if (!uf %in% c("RS", "SC")) stop("UF não suportada")
+if (nzchar(forced_comp) && !grepl("^[0-9]{4}(0[1-9]|1[0-2])$", forced_comp)) stop("Competência inválida")
+
 if (!requireNamespace("read.dbc", quietly = TRUE)) stop("Pacote read.dbc não instalado")
 if (!requireNamespace("jsonlite", quietly = TRUE)) stop("Pacote jsonlite não instalado")
 if (!requireNamespace("curl", quietly = TRUE)) stop("Pacote curl não instalado")
@@ -48,18 +51,17 @@ required <- c("CODUFMUN", "CBO")
 missing_required <- setdiff(required, names(df))
 if (length(missing_required)) stop("Campos ausentes: ", paste(missing_required, collapse = ", "))
 
-id_candidates <- intersect(c("CNS_PROF", "CPF_PROF", "NOMEPROF"), names(df))
-if (!length(id_candidates)) stop("Nenhum identificador de profissional disponível.")
-id_col <- id_candidates[1]
+if (!"CNS_PROF" %in% names(df)) stop("Campo CNS_PROF ausente; não é possível deduplicar com a metodologia definida.")
+id_col <- "CNS_PROF"
 
 df$CODUFMUN <- trimws(as.character(df$CODUFMUN))
 df$CBO <- trimws(as.character(df$CBO))
 df$PROF_ID <- trimws(as.character(df[[id_col]]))
 
 med <- df[
-  grepl("^225", df$CBO) &
-    nzchar(df$CODUFMUN) &
-    nzchar(df$PROF_ID),
+  !is.na(df$CBO) & grepl("^225[0-9]{3}$", df$CBO) &
+    !is.na(df$CODUFMUN) & grepl("^[0-9]{6}$", df$CODUFMUN) &
+    !is.na(df$PROF_ID) & nzchar(df$PROF_ID) & !grepl("^0+$", df$PROF_ID),
   c("CODUFMUN", "CBO", "PROF_ID"),
   drop = FALSE
 ]

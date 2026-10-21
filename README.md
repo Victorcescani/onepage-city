@@ -227,3 +227,48 @@ Por enquanto, o modelo "site estático + serverless + JSON commitado" entrega tu
 - Backend dev: **Ruby / WEBrick** (`server.rb` — estáticos + proxy + parser de CSV)
 - Backend prod: **Node.js serverless / Vercel** (`api/proxy/*.js`)
 - Persistência: **arquivos JSON commitados em `data/`** (snapshots ANS por UF/mês)
+
+## Médicos CNES-PF e contexto econômico municipal
+
+A branch `fix/medical-density-profile` substitui ElastiCNES profissionais por
+`data/cnes_medicos_RS.json` e `data/cnes_medicos_SC.json`. O total é a união de
+CNS_PROF por município; as especialidades são deduplicadas por município/CBO/CNS.
+As especialidades não são aditivas. São cadastros em estabelecimentos SUS e privados,
+não residência nem carga horária disponível. População denominadora: Censo 2022,
+conforme o restante da aplicação. CBOs incluídos: 225*. Fora de RS/SC ou sem fonte,
+a interface informa indisponibilidade, sem substituir por zero.
+
+Validação: `python scripts/validar_cnes_medicos.py` e `npm test`.
+Atualização mensal: workflow `test-cnes-medicos.yml`, dia 20 às 08:20 UTC (na
+branch padrão após merge). Pode ser executado manualmente com AAAAMM ou descoberta
+automática. Publicação usa worktree sobre HEAD remoto, retry sem force-push,
+proteção contra regressão de competência e comparação que ignora generated_at.
+Não substitui alterações concorrentes no código ou publica com gerador obsoleto.
+
+### Ativar a pesquisa qualitativa
+
+Na Vercel, projeto `onepage-city`, configurar **GEMINI_API_KEY** como segredo nos
+ambientes **Preview** e **Production** e fazer novo deploy. Não colocar a chave
+no frontend, no GitHub ou em parâmetros de URL. Variável opcional **GEMINI_MODEL**,
+padrão `gemini-2.5-flash-lite`, com Google Search grounding. Conferir limites e
+preços vigentes em https://ai.google.dev/gemini-api/docs/pricing e quotas da conta
+no AI Studio. Uma franquia gratuita não representa garantia de custo zero.
+
+`GET /api/contexto-local?ibge=4316808` só é chamado pelo botão. O servidor resolve
+a identidade via IBGE; nenhum nome ou prompt livre do cliente é aceito. A resposta
+contém 2–3 parágrafos, fontes vindas dos metadados do Google, evidências por trecho,
+data da consulta e expiração. Não há alteração de IQM. Ausência de chave retorna
+503; pesquisa sem grounding suficiente retorna erro explícito, nunca texto fictício.
+
+Cache: URL canônica por código IBGE no CDN Vercel por 7 dias, memória do processo
+com coalescência de chamadas e localStorage de 7 dias após clique. Erros não são
+armazenados. Cache CDN pode ser invalidado por novo deploy ou variar por região;
+memória não é armazenamento persistente global. Limitador de 10 novas pesquisas
+por minuto por instância, não quota global. Para limite financeiro rígido, configurar
+quotas no provedor; para alto volume, acrescentar cache/limitador compartilhado.
+As sugestões obrigatórias de busca Google são isoladas em iframe sem scripts.
+
+Testes unitários usam respostas simuladas identificadas nos testes. A validação
+real da qualidade da síntese depende de chave ativa e deve ser realizada na preview
+antes da promoção para produção, incluindo Santa Cruz do Sul, troca de município,
+cache, links e falhas do provedor.

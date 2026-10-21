@@ -1,0 +1,24 @@
+name: Test One Page
+on:
+  pull_request:
+  push:
+    branches: [main, fix/medical-density-profile]
+    paths:
+      - 'app.js'
+      - 'local-context.js'
+      - 'api/contexto-local.js'
+      - 'tests/**'
+      - 'data/cnes_medicos_*.json'
+      - '.github/workflows/test-onepage.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check app.js && node --check local-context.js && npm test
+      - run: python scripts/validar_cnes_medicos.py

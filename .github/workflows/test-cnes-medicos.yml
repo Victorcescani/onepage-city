@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - fix/medical-density-profile
+      - main
     paths:
       - "scripts/gerar_cnes_medicos.R"
       - ".github/workflows/test-cnes-medicos.yml"
+      - "scripts/validar_cnes_medicos.py"
+      - "scripts/publicar_cnes_medicos.py"
   schedule:
     - cron: "20 8 20 * *"
   workflow_dispatch:
@@ -18,7 +21,7 @@ on:
 
 concurrency:
   group: cnes-medicos-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -29,6 +32,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -48,30 +53,10 @@ jobs:
           Rscript scripts/gerar_cnes_medicos.R "SC" "$COMP_INPUT"
 
       - name: Validar JSON
-        run: |
-          test -s "data/cnes_medicos_RS.json"
-          test -s "data/cnes_medicos_SC.json"
-          python - <<'PY'
-          import json
-          for uf in ("RS", "SC"):
-              p = f"data/cnes_medicos_{uf}.json"
-              d = json.load(open(p, encoding="utf-8"))
-              assert d["cities"], f"{uf}: cities vazio"
-              print(uf, "competencia", d["comp"], "municipios", len(d["cities"]))
-          rs = json.load(open("data/cnes_medicos_RS.json", encoding="utf-8"))
-          for cod in ("431680", "430510", "431490"):
-              print(cod, rs["cities"][cod]["total"])
-          PY
+        run: python scripts/validar_cnes_medicos.py
 
-      - name: Commit do JSON de teste
+      - name: Publicar snapshots sem sobrescrever mudanças simultâneas
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/cnes_medicos_*.json
-          if git diff --cached --quiet; then
-            echo "Sem alterações."
-          else
-            git commit -m "data: atualizar médicos CNES [skip cnes]"
-            git pull --rebase origin "$GITHUB_REF_NAME"
-            git push
-          fi
+          python scripts/publicar_cnes_medicos.py
