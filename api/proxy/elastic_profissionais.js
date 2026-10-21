@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         comp,
         totalHits: raw?.rawResponse?.hits?.total || null,
         source: hit?._source || null,
-        fields: hit?.fields || null,
+        fields: hit?.fields || null,\n        raw,
       });
     }
 
