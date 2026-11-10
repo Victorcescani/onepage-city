@@ -6,12 +6,15 @@ let requests = [];
 const fail = (status, message) => Object.assign(new Error(message), { status });
 
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(45000) });
+  const provider = url.includes('ibge.gov.br') ? 'IBGE' : 'Gemini';
+  let response;
+  try { response = await fetch(url, { ...options, signal: AbortSignal.timeout(provider === 'IBGE' ? 5000 : 45000) }); }
+  catch { throw fail(502, 'Falha de conexão com ' + provider + '.'); }
   if (!response.ok) {
     if (response.status === 429) throw fail(429, 'Limite de consultas atingido. Tente novamente mais tarde.');
-    throw fail(502, 'A fonte de pesquisa está indisponível. Tente novamente mais tarde.');
+    throw fail(502, provider + ' retornou HTTP ' + response.status + '.');
   }
-  return response.json();
+  try { return await response.json(); } catch { throw fail(502, provider + ' retornou uma resposta inválida.'); }
 }
 
 export function groundedResult(candidate) {
@@ -50,7 +53,14 @@ export function groundedResult(candidate) {
 
 async function research(ibge) {
   // Resolve identity on the server, ignoring browser-supplied names and prompts.
-  const loc = await fetchJson(`https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${ibge}`);
+  let loc;
+  try { loc = await fetchJson(`https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${ibge}`); } catch (error) {
+    const { readFile } = await import('node:fs/promises');
+    const rows = JSON.parse(await readFile(new URL('../data/iqm_rs.json', import.meta.url), 'utf8'));
+    const row = rows.find(r => String(r.codigo_ibge) === ibge);
+    if (!row) throw error;
+    loc = { id: ibge, nome: row.municipio, microrregiao: { mesorregiao: { UF: { sigla: row.uf } } } };
+  }
   const uf = loc?.microrregiao?.mesorregiao?.UF?.sigla || loc?.['regiao-imediata']?.['regiao-intermediaria']?.UF?.sigla;
   if (String(loc?.id) !== ibge || !uf || !loc.nome) throw fail(404, 'Município não identificado no IBGE.');
   const city = { ibge, name: loc.nome, uf };
