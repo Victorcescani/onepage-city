@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>One Page — Pesquisa de Cidades</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="style.css?v=66">
+<link rel="stylesheet" href="style.css?v=67-test-leitos">
 <link rel="stylesheet" href="onepage-ajustes.css?v=1">
 </head>
 <body>
@@ -274,8 +274,33 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card hospital-table-card">
         <h3>Leitos por hospital — microrregião</h3>
+
+        <div class="hospital-filter-toolbar">
+          <div class="hospital-filter-group" id="micro-hospital-filters" role="group" aria-label="Filtro dos hospitais da microrregião">
+            <button type="button" class="hospital-filter-btn" data-filter="all" aria-pressed="false">
+              Todos (<span id="micro-hospital-count-all">—</span>)
+            </button>
+            <button type="button" class="hospital-filter-btn" data-filter="top-general" aria-pressed="false">
+              Top 10 geral
+            </button>
+            <button type="button" class="hospital-filter-btn" data-filter="top-private" aria-pressed="false">
+              Top 10 privados
+            </button>
+            <button type="button" class="hospital-filter-btn" data-filter="all-private" aria-pressed="false">
+              Todos privados (<span id="micro-hospital-count-private">—</span>)
+            </button>
+          </div>
+
+          <div class="hospital-filter-help">
+            <span class="hospital-filter-help-icon">i</span>
+            <span>Selecione o conjunto de hospitais e o critério de ordenação da tabela.</span>
+          </div>
+        </div>
+
+        <div id="micro-hospital-filter-description" class="hospital-filter-description"></div>
+
         <div class="table-wrap">
           <table class="table" id="micro-leitos-table">
             <thead>
@@ -524,7 +549,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./iqm-2025.js?v=1"></script>
-<script src="app.js?v=73"></script>
+<script src="app.js?v=74-test-leitos"></script>
 <script src="onepage-ajustes.js?v=1"></script>
 </body>
 </html>

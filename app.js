@@ -85,6 +85,8 @@ const state = {
   estabsPOAMicro: [],
   charts: {},
   maps: {},
+  microHospitalFilter: null,
+  microHospitalContextKey: null,
 };
 
 /* ===== Utils ===== */
@@ -2740,6 +2742,134 @@ async function enrichHospitalPhotos(top3, cityName, uf) {
 
 /* -- Leitos -- */
 
+function hospitalUtiTotal(hospital) {
+  return (hospital?.leitos || [])
+    .filter(l => /UTI|INTENSIV|UNIDADE INT/i.test(l.tipo))
+    .reduce((sum, l) => sum + Number(l.existentes || 0), 0);
+}
+
+function microHospitalFilterConfig(mode) {
+  const configs = {
+    "all": {
+      description: "Todos os hospitais da microrregião.",
+      order: "Ordenação: número total de leitos (decrescente).",
+    },
+    "top-general": {
+      description: "10 maiores hospitais da microrregião.",
+      order: "Ordenação: número total de leitos (decrescente).",
+    },
+    "top-private": {
+      description: "10 maiores ofertas hospitalares privadas.",
+      order: "Ordenação: número de leitos privados (decrescente).",
+    },
+    "all-private": {
+      description: "Hospitais com pelo menos 1 leito privado.",
+      order: "Ordenação: número de leitos privados (decrescente).",
+    },
+  };
+  return configs[mode] || configs.all;
+}
+
+function filteredMicroHospitals(hospitals, mode) {
+  const rows = [...(hospitals || [])];
+  const byTotal = (a, b) =>
+    Number(b.leitos_total || 0) - Number(a.leitos_total || 0) ||
+    Number(b.leitos_privados_total || 0) - Number(a.leitos_privados_total || 0);
+
+  const byPrivate = (a, b) =>
+    Number(b.leitos_privados_total || 0) - Number(a.leitos_privados_total || 0) ||
+    Number(b.leitos_total || 0) - Number(a.leitos_total || 0);
+
+  if (mode === "top-general") return rows.sort(byTotal).slice(0, 10);
+  if (mode === "top-private") {
+    return rows.filter(h => Number(h.leitos_privados_total || 0) > 0).sort(byPrivate).slice(0, 10);
+  }
+  if (mode === "all-private") {
+    return rows.filter(h => Number(h.leitos_privados_total || 0) > 0).sort(byPrivate);
+  }
+  return rows.sort(byTotal);
+}
+
+function renderMicroHospitalTable(leitos, muniMap, mode) {
+  const tbody = $("#micro-leitos-table tbody");
+  const tfoot = $("#micro-leitos-table tfoot");
+  const description = $("#micro-hospital-filter-description");
+  const allCount = $("#micro-hospital-count-all");
+  const privateCount = $("#micro-hospital-count-private");
+  if (!tbody || !tfoot) return;
+
+  const hospitals = leitos?.hospitais || [];
+  const privateHospitals = hospitals.filter(h => Number(h.leitos_privados_total || 0) > 0);
+  const rows = filteredMicroHospitals(hospitals, mode);
+  const cfg = microHospitalFilterConfig(mode);
+
+  if (allCount) allCount.textContent = fmt(hospitals.length);
+  if (privateCount) privateCount.textContent = fmt(privateHospitals.length);
+
+  $("#micro-hospital-filters .hospital-filter-btn").forEach(btn => {
+    const active = btn.dataset.filter === mode;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+
+  if (description) {
+    description.innerHTML = `<strong>${cfg.description}</strong> <span>${cfg.order}</span>`;
+  }
+
+  tbody.innerHTML = "";
+  tfoot.innerHTML = "";
+
+  if (!rows.length) {
+    tbody.append(el("tr", {},
+      el("td", { colspan: "7", class: "hospital-empty" },
+        "Não foram identificados hospitais com leitos privados neste recorte."
+      )
+    ));
+    return;
+  }
+
+  for (const h of rows) {
+    const muniNome = muniMap[h.cod_ibge] || "—";
+    const utiH = hospitalUtiTotal(h);
+
+    tbody.append(el("tr", {},
+      el("td", {}, h.nome),
+      el("td", {}, muniNome),
+      el("td", {}, h.tipo),
+      el("td", { class: "num" }, fmt(h.leitos_sus_total)),
+      el("td", { class: "num" }, fmt(h.leitos_privados_total)),
+      el("td", { class: "num hospital-total" }, fmt(h.leitos_total)),
+      el("td", { class: "num" }, fmt(utiH)),
+    ));
+  }
+
+  const displayedTotals = rows.reduce((acc, h) => {
+    acc.sus += Number(h.leitos_sus_total || 0);
+    acc.privados += Number(h.leitos_privados_total || 0);
+    acc.total += Number(h.leitos_total || 0);
+    acc.uti += hospitalUtiTotal(h);
+    return acc;
+  }, { sus: 0, privados: 0, total: 0, uti: 0 });
+
+  const isAll = mode === "all";
+  const totals = isAll
+    ? {
+        sus: Number(leitos?.totais?.sus || 0),
+        privados: Number(leitos?.totais?.privados || 0),
+        total: Number(leitos?.totais?.existentes || 0),
+        uti: hospitals.reduce((sum, h) => sum + hospitalUtiTotal(h), 0),
+      }
+    : displayedTotals;
+
+  tfoot.append(el("tr", {},
+    el("td", { colspan: "3" }, isAll ? "TOTAL MICRORREGIÃO" : "TOTAL EXIBIDO"),
+    el("td", { class: "num" }, fmt(totals.sus)),
+    el("td", { class: "num" }, fmt(totals.privados)),
+    el("td", { class: "num" }, fmt(totals.total)),
+    el("td", { class: "num" }, fmt(totals.uti)),
+  ));
+}
+
 function renderLeitosMicro(leitos, totalPop, beneficiariosMH) {
   if (!leitos || !leitos.hospitais) return;
   const t = leitos.totais;
@@ -2757,30 +2887,20 @@ function renderLeitosMicro(leitos, totalPop, beneficiariosMH) {
   const muniMap = {};
   for (const m of state.micro.municipios) muniMap[m.id.slice(0, 6)] = m.nome;
 
-  const tbody = $("#micro-leitos-table tbody");
-  const tfoot = $("#micro-leitos-table tfoot");
-  tbody.innerHTML = ""; tfoot.innerHTML = "";
-  for (const h of leitos.hospitais) {
-    const muniNome = muniMap[h.cod_ibge] || "—";
-    const utiH = (h.leitos || []).filter(l => /UTI|INTENSIV|UNIDADE INT/i.test(l.tipo)).reduce((a, b) => a + b.existentes, 0);
-    tbody.append(el("tr", {},
-      el("td", {}, h.nome),
-      el("td", {}, muniNome),
-      el("td", {}, h.tipo),
-      el("td", { class: "num" }, fmt(h.leitos_sus_total)),
-      el("td", { class: "num" }, fmt(h.leitos_privados_total)),
-      el("td", { class: "num" }, fmt(h.leitos_total)),
-      el("td", { class: "num" }, fmt(utiH)),
-    ));
+  const contextKey = String(state.micro.id || state.city?.id || "");
+  if (state.microHospitalContextKey !== contextKey) {
+    state.microHospitalContextKey = contextKey;
+    state.microHospitalFilter = leitos.hospitais.length <= 10 ? "all" : "top-general";
   }
-  tfoot.append(el("tr", {},
-    el("td", { colspan: "3" }, "TOTAL"),
-    el("td", { class: "num" }, fmt(t.sus)),
-    el("td", { class: "num" }, fmt(t.privados)),
-    el("td", { class: "num" }, fmt(t.existentes)),
-    el("td", { class: "num" }, fmt(utiTot)),
-  ));
-}
+
+  renderMicroHospitalTable(leitos, muniMap, state.microHospitalFilter || "all");
+
+  $("#micro-hospital-filters .hospital-filter-btn").forEach(btn => {
+    btn.onclick = () => {
+      state.microHospitalFilter = btn.dataset.filter || "all";
+      renderMicroHospitalTable(leitos, muniMap, state.microHospitalFilter);
+    };
+  });
 
 function renderLeitosCity(leitos, pop, beneficiariosMH) {
   if (!leitos || !leitos.hospitais) return;
