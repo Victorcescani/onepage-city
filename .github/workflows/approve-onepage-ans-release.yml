@@ -14,7 +14,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: onepage-ans-release-promotion
@@ -114,12 +113,11 @@ jobs:
           git commit -m "release(ans): aprova competência ${{ inputs.competence }}"
           git push origin HEAD:onepage-ans-candidate
 
-      - name: Promover PR para main
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Promover candidata diretamente para main
         shell: bash
         run: |
-          PR_URL="$(gh pr list --head onepage-ans-candidate --base main --state open --json url --jq '.[0].url // empty')"
-          [[ -n "$PR_URL" ]] || { echo "PR de homologação não encontrado." >&2; exit 1; }
-          gh pr merge "$PR_URL" --merge --delete-branch=false
+          git fetch origin main onepage-ans-candidate
+          git checkout -B main origin/main
+          git merge --no-ff origin/onepage-ans-candidate -m "release(ans): publica competência ${{ inputs.competence }}"
+          git push origin main
           echo "Competência ${{ inputs.competence }} promovida para produção."
