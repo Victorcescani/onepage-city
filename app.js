@@ -3724,6 +3724,82 @@ async function renderIQMandBubble(ctx) {
   }
 }
 
+function quantileSorted(values, q) {
+  if (!values.length) return null;
+  if (values.length === 1) return values[0];
+
+  const pos = (values.length - 1) * q;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  const next = values[base + 1];
+
+  return next == null
+    ? values[base]
+    : values[base] + rest * (next - values[base]);
+}
+
+function splitBubbleScaleOutliers(points) {
+  const candidates = (points || []).filter(
+    p => Number.isFinite(Number(p?.x)) && Number(p.x) > 0
+  );
+
+  if (candidates.length < 5) {
+    return { visible: points || [], outliers: [] };
+  }
+
+  let remaining = [...candidates];
+  const outlierIds = new Set();
+
+  for (let pass = 0; pass < 3 && remaining.length >= 5; pass++) {
+    const xs = remaining.map(p => Number(p.x)).sort((a, b) => a - b);
+    const q1 = quantileSorted(xs, 0.25);
+    const q3 = quantileSorted(xs, 0.75);
+    const median = quantileSorted(xs, 0.50);
+    const iqr = Math.max(0, q3 - q1);
+
+    const upperFence = Math.max(
+      q3 + 3 * iqr,
+      median * 4,
+      q3 * 2.5
+    );
+
+    const extremes = remaining.filter(p => Number(p.x) > upperFence);
+    if (!extremes.length) break;
+
+    for (const p of extremes) outlierIds.add(String(p.id));
+    remaining = remaining.filter(p => !outlierIds.has(String(p.id)));
+  }
+
+  const outliers = (points || [])
+    .filter(p => outlierIds.has(String(p.id)))
+    .sort((a, b) => Number(b.x) - Number(a.x));
+
+  return {
+    visible: (points || []).filter(p => !outlierIds.has(String(p.id))),
+    outliers,
+  };
+}
+
+function updateBubbleOutlierNote(outliers) {
+  const note = document.getElementById("city-bubble-outlier-note");
+  if (!note) return;
+
+  if (!outliers?.length) {
+    note.hidden = true;
+    note.textContent = "";
+    return;
+  }
+
+  const details = outliers
+    .map(p => `${p.label} (${fmt(Math.round(Number(p.x)))} benef./leito privado)`)
+    .join("; ");
+
+  note.textContent = outliers.length === 1
+    ? `Escala ajustada: ${details} foi retirado desta visualização por distorcer o eixo X. O dado permanece considerado nos demais indicadores do painel.`
+    : `Escala ajustada: ${details} foram retirados desta visualização por distorcer o eixo X. Os dados permanecem considerados nos demais indicadores do painel.`;
+  note.hidden = false;
+}
+
 function renderBubbleChart(points) {
   const key = "city-bubble";
   destroyChart(key);
@@ -3731,7 +3807,10 @@ function renderBubbleChart(points) {
   const canvas = $(`#${key}`);
   if (!canvas) return;
 
-  if (!points || !points.length) {
+  const { visible: visiblePoints, outliers } = splitBubbleScaleOutliers(points || []);
+  updateBubbleOutlierNote(outliers);
+
+  if (!visiblePoints.length) {
     canvas.parentElement.innerHTML =
       `<p class="muted">Dados insuficientes para o benchmark regional. É necessário haver população e beneficiários ANS para montar os pontos.</p>`;
     return;
@@ -3753,15 +3832,15 @@ function renderBubbleChart(points) {
     return "Município da microrregião";
   };
 
-  const xValues = points.map(p => p.x);
-  const yValues = points.map(p => p.y);
+  const xValues = visiblePoints.map(p => p.x);
+  const yValues = visiblePoints.map(p => p.y);
 
   const xScale = honestYScale(xValues, { forceZero: true, padPct: 0.12 });
   const yScale = honestYScale(yValues, { forceZero: true, padPct: 0.15 });
 
   const ds = {
     label: "Municípios",
-    data: points.map(p => ({
+    data: visiblePoints.map(p => ({
       x: p.x,
       y: p.y,
       r: p.r,
@@ -3772,10 +3851,10 @@ function renderBubbleChart(points) {
       noPrivateBeds: p.noPrivateBeds,
       pibMissing: p.pibMissing,
     })),
-    backgroundColor: points.map(p => (p.noPrivateBeds && p.kind === "micro" ? "#6b7280" : colorFor(p.kind)) + "cc"),
-    borderColor: points.map(p => p.noPrivateBeds && p.kind === "micro" ? "#374151" : colorFor(p.kind)),
-    borderWidth: points.map(p => p.kind === "micro" ? 1.5 : 2.8),
-    pointStyle: points.map(p => p.noPrivateBeds ? "triangle" : (p.kind === "microAgg" ? "rect" : "circle")),
+    backgroundColor: visiblePoints.map(p => (p.noPrivateBeds && p.kind === "micro" ? "#6b7280" : colorFor(p.kind)) + "cc"),
+    borderColor: visiblePoints.map(p => p.noPrivateBeds && p.kind === "micro" ? "#374151" : colorFor(p.kind)),
+    borderWidth: visiblePoints.map(p => p.kind === "micro" ? 1.5 : 2.8),
+    pointStyle: visiblePoints.map(p => p.noPrivateBeds ? "triangle" : (p.kind === "microAgg" ? "rect" : "circle")),
   };
 
   state.charts[key] = new Chart(canvas, {
