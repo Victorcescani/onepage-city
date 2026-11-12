@@ -147,29 +147,17 @@ jobs:
           fi
           git push --force-with-lease origin HEAD:onepage-ans-candidate
 
-      - name: Abrir ou atualizar PR de homologação
+      - name: Registrar candidata aguardando aprovação
         if: steps.competence.outputs.needs_update == 'true'
-        id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CANDIDATE: ${{ steps.competence.outputs.official }}
-          APPROVED: ${{ steps.competence.outputs.approved }}
+        id: approval
         shell: bash
         run: |
           STATUS="$(node -p 'JSON.parse(require("fs").readFileSync("data/ans/releases/candidate.json", "utf8")).status')"
           VALIDATION="$(node -p 'JSON.parse(require("fs").readFileSync("data/ans/releases/candidate.json", "utf8")).validationStatus')"
-          TITLE="One Page · ANS ${CANDIDATE} · aguardando aprovação"
-          if [[ "$STATUS" == "blocked" ]]; then
-            TITLE="[BLOQUEADO] One Page · ANS ${CANDIDATE}"
-          fi
-          BODY="Competência candidata **${CANDIDATE}** preparada automaticamente para o One Page.\n\nProdução permanece em **${APPROVED}** até aprovação explícita.\n\nValidação automática: **${VALIDATION}**.\n\nA candidata contém RS, SC, MG, PR, PB e GO e não altera a produção enquanto este PR não for promovido pelo workflow de aprovação."
-          PR_URL="$(gh pr list --head onepage-ans-candidate --base main --state open --json url --jq '.[0].url // empty')"
-          if [[ -z "$PR_URL" ]]; then
-            PR_URL="$(gh pr create --head onepage-ans-candidate --base main --title "$TITLE" --body "$BODY")"
-          else
-            gh pr edit "$PR_URL" --title "$TITLE" --body "$BODY"
-          fi
-          echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "candidate_status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "validation_status=$VALIDATION" >> "$GITHUB_OUTPUT"
+          echo "Candidata ${{ steps.competence.outputs.official }} preparada na branch onepage-ans-candidate."
+          echo "A produção permanece em ${{ steps.competence.outputs.approved }} até execução explícita do workflow Aprovar publicação ANS do One Page."
 
       - name: Resumo
         if: always()
@@ -181,7 +169,8 @@ jobs:
             echo "- Competência publicada: ${{ steps.competence.outputs.approved || 'não resolvida' }}"
             echo "- Competência oficial detectada: ${{ steps.competence.outputs.official || 'não resolvida' }}"
             echo "- Nova candidata necessária: ${{ steps.competence.outputs.needs_update || 'não resolvido' }}"
-            echo "- PR de homologação: ${{ steps.pr.outputs.url || 'não criado' }}"
+            echo "- Status da candidata: ${{ steps.approval.outputs.candidate_status || 'não resolvido' }}"
+            echo "- Validação automática: ${{ steps.approval.outputs.validation_status || 'não resolvida' }}"
             echo "- Produção alterada automaticamente: **não**"
             echo "- Resultado técnico: ${{ job.status }}"
           } >> "$GITHUB_STEP_SUMMARY"
