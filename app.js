@@ -2748,6 +2748,46 @@ function hospitalUtiTotal(hospital) {
     .reduce((sum, l) => sum + Number(l.existentes || 0), 0);
 }
 
+function normalizeHospitalNature(hospital) {
+  const raw = String(hospital?.natureza || hospital?.natureza_cat || "").trim();
+  const txt = raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+
+  if (!txt) return { label: "—", raw: "" };
+
+  if (
+    /ADMINISTRACAO PUBLICA|PUBLICO|PUBLICA|AUTARQUIA|GOVERNO|EMPRESA PUBLICA|FUNDACAO PUBLICA/.test(txt)
+  ) {
+    return { label: "Público", raw };
+  }
+
+  if (
+    /SEM FINS LUCRATIVOS|FILANTROP|ASSOCIACAO|FUNDACAO PRIVADA|ORGANIZACAO RELIGIOSA/.test(txt)
+  ) {
+    return { label: "Filantrópico / sem fins lucrativos", raw };
+  }
+
+  if (
+    /ENTIDADES EMPRESARIAIS|EMPRESARIAL|PRIVADO|PRIVADA|SOCIEDADE|EMPRESARIO|PESSOA FISICA|COOPERATIVA/.test(txt)
+  ) {
+    return { label: "Privado", raw };
+  }
+
+  return { label: raw, raw };
+}
+
+function hospitalCareProfile(hospital) {
+  const sus = Number(hospital?.leitos_sus_total || 0);
+  const privado = Number(hospital?.leitos_privados_total || 0);
+
+  if (sus > 0 && privado > 0) return "SUS + Privado";
+  if (sus > 0) return "SUS";
+  if (privado > 0) return "Privado";
+  return "—";
+}
+
 function microHospitalFilterConfig(mode) {
   const configs = {
     "all": {
@@ -2821,7 +2861,7 @@ function renderMicroHospitalTable(leitos, muniMap, mode) {
 
   if (!rows.length) {
     tbody.append(el("tr", {},
-      el("td", { colspan: "7", class: "hospital-empty" },
+      el("td", { colspan: "9", class: "hospital-empty" },
         "Não foram identificados hospitais com leitos privados neste recorte."
       )
     ));
@@ -2832,9 +2872,19 @@ function renderMicroHospitalTable(leitos, muniMap, mode) {
     const muniNome = muniMap[h.cod_ibge] || "—";
     const utiH = hospitalUtiTotal(h);
 
+    const natureza = normalizeHospitalNature(h);
+    const perfilAssistencial = hospitalCareProfile(h);
+
     tbody.append(el("tr", {},
       el("td", {}, h.nome),
       el("td", {}, muniNome),
+      el("td", {
+        class: "hospital-nature",
+        title: natureza.raw && natureza.raw !== natureza.label
+          ? `CNES: ${natureza.raw}`
+          : natureza.label
+      }, natureza.label),
+      el("td", { class: "hospital-care-profile" }, perfilAssistencial),
       el("td", {}, h.tipo),
       el("td", { class: "num" }, fmt(h.leitos_sus_total)),
       el("td", { class: "num" }, fmt(h.leitos_privados_total)),
@@ -2862,7 +2912,7 @@ function renderMicroHospitalTable(leitos, muniMap, mode) {
     : displayedTotals;
 
   tfoot.append(el("tr", {},
-    el("td", { colspan: "3" }, isAll ? "TOTAL MICRORREGIÃO" : "TOTAL EXIBIDO"),
+    el("td", { colspan: "5" }, isAll ? "TOTAL MICRORREGIÃO" : "TOTAL EXIBIDO"),
     el("td", { class: "num" }, fmt(totals.sus)),
     el("td", { class: "num" }, fmt(totals.privados)),
     el("td", { class: "num" }, fmt(totals.total)),

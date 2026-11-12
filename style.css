@@ -1711,3 +1711,68 @@ body.print-executive img.print-snapshot {
     font-size: 9pt !important;
   }
 }
+
+
+/* ===== Teste: natureza jurídica e perfil assistencial ===== */
+#micro-leitos-table {
+  min-width: 1180px;
+}
+
+#micro-leitos-table th,
+#micro-leitos-table td {
+  vertical-align: middle;
+}
+
+#micro-leitos-table th:nth-child(1),
+#micro-leitos-table td:nth-child(1) {
+  min-width: 280px;
+}
+
+#micro-leitos-table th:nth-child(2),
+#micro-leitos-table td:nth-child(2) {
+  min-width: 150px;
+}
+
+#micro-leitos-table th:nth-child(3),
+#micro-leitos-table td:nth-child(3) {
+  min-width: 165px;
+}
+
+#micro-leitos-table th:nth-child(4),
+#micro-leitos-table td:nth-child(4) {
+  min-width: 115px;
+}
+
+#micro-leitos-table th:nth-child(5),
+#micro-leitos-table td:nth-child(5) {
+  min-width: 150px;
+}
+
+.hospital-nature,
+.hospital-care-profile {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.hospital-care-profile {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media print {
+  #micro-leitos-table {
+    min-width: 0 !important;
+    font-size: 8pt !important;
+  }
+
+  #micro-leitos-table th,
+  #micro-leitos-table td {
+    min-width: 0 !important;
+    padding: 4px 4px !important;
+  }
+
+  .hospital-nature,
+  .hospital-care-profile {
+    font-size: 7.6pt !important;
+  }
+}
