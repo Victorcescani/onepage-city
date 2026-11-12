@@ -1,0 +1,17 @@
+{
+  "competence": "202609",
+  "baseCompetence": "202602",
+  "ufs": [
+    "RS",
+    "SC",
+    "MG",
+    "PR",
+    "PB",
+    "GO"
+  ],
+  "status": "pending",
+  "validationStatus": "passed_with_warnings",
+  "createdAt": "2026-11-12T00:53:07.105Z",
+  "reviewUrl": null,
+  "notes": "Carga candidata aguardando homologação e aprovação explícita."
+}

@@ -1,0 +1,135 @@
+{
+  "candidate": "202609",
+  "baseCompetence": "202602",
+  "ufs": [
+    "RS",
+    "SC",
+    "MG",
+    "PR",
+    "PB",
+    "GO"
+  ],
+  "status": "passed_with_warnings",
+  "generatedAt": "2026-11-12T00:53:07.105Z",
+  "blockingIssues": [],
+  "warnings": [
+    "MG: Base aprovada MG/202602 não existe; comparação temporal não executada.",
+    "PR: Base aprovada PR/202602 não existe; comparação temporal não executada.",
+    "PB: Base aprovada PB/202602 não existe; comparação temporal não executada.",
+    "GO: Base aprovada GO/202602 não existe; comparação temporal não executada."
+  ],
+  "results": [
+    {
+      "uf": "RS",
+      "status": "passed",
+      "candidate": {
+        "cityCount": 499,
+        "operatorRows": 21673,
+        "total": 3828301,
+        "mh": 2667057,
+        "odonto": 1161244,
+        "problems": []
+      },
+      "approved": {
+        "cityCount": 499,
+        "operatorRows": 21603,
+        "total": 3781499,
+        "mh": 2663001,
+        "odonto": 1118498,
+        "problems": []
+      },
+      "blockingIssues": [],
+      "warnings": []
+    },
+    {
+      "uf": "SC",
+      "status": "passed",
+      "candidate": {
+        "cityCount": 296,
+        "operatorRows": 16146,
+        "total": 2783474,
+        "mh": 1749323,
+        "odonto": 1034151,
+        "problems": []
+      },
+      "approved": {
+        "cityCount": 296,
+        "operatorRows": 16007,
+        "total": 2728149,
+        "mh": 1733821,
+        "odonto": 994328,
+        "problems": []
+      },
+      "blockingIssues": [],
+      "warnings": []
+    },
+    {
+      "uf": "MG",
+      "status": "passed_with_warnings",
+      "candidate": {
+        "cityCount": 854,
+        "operatorRows": 45110,
+        "total": 9191033,
+        "mh": 5895238,
+        "odonto": 3295795,
+        "problems": []
+      },
+      "approved": null,
+      "blockingIssues": [],
+      "warnings": [
+        "Base aprovada MG/202602 não existe; comparação temporal não executada."
+      ]
+    },
+    {
+      "uf": "PR",
+      "status": "passed_with_warnings",
+      "candidate": {
+        "cityCount": 400,
+        "operatorRows": 21145,
+        "total": 5331659,
+        "mh": 3215309,
+        "odonto": 2116350,
+        "problems": []
+      },
+      "approved": null,
+      "blockingIssues": [],
+      "warnings": [
+        "Base aprovada PR/202602 não existe; comparação temporal não executada."
+      ]
+    },
+    {
+      "uf": "PB",
+      "status": "passed_with_warnings",
+      "candidate": {
+        "cityCount": 224,
+        "operatorRows": 6675,
+        "total": 1057812,
+        "mh": 467378,
+        "odonto": 590434,
+        "problems": []
+      },
+      "approved": null,
+      "blockingIssues": [],
+      "warnings": [
+        "Base aprovada PB/202602 não existe; comparação temporal não executada."
+      ]
+    },
+    {
+      "uf": "GO",
+      "status": "passed_with_warnings",
+      "candidate": {
+        "cityCount": 248,
+        "operatorRows": 11942,
+        "total": 2965643,
+        "mh": 1942159,
+        "odonto": 1023484,
+        "problems": []
+      },
+      "approved": null,
+      "blockingIssues": [],
+      "warnings": [
+        "Base aprovada GO/202602 não existe; comparação temporal não executada."
+      ]
+    }
+  ]
+}
