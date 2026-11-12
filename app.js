@@ -2806,7 +2806,7 @@ function renderMicroHospitalTable(leitos, muniMap, mode) {
   if (allCount) allCount.textContent = fmt(hospitals.length);
   if (privateCount) privateCount.textContent = fmt(privateHospitals.length);
 
-  $("#micro-hospital-filters .hospital-filter-btn").forEach(btn => {
+  $$("#micro-hospital-filters .hospital-filter-btn").forEach(btn => {
     const active = btn.dataset.filter === mode;
     btn.classList.toggle("active", active);
     btn.setAttribute("aria-pressed", active ? "true" : "false");
@@ -2895,12 +2895,14 @@ function renderLeitosMicro(leitos, totalPop, beneficiariosMH) {
 
   renderMicroHospitalTable(leitos, muniMap, state.microHospitalFilter || "all");
 
-  $("#micro-hospital-filters .hospital-filter-btn").forEach(btn => {
+  $$("#micro-hospital-filters .hospital-filter-btn").forEach(btn => {
     btn.onclick = () => {
       state.microHospitalFilter = btn.dataset.filter || "all";
       renderMicroHospitalTable(leitos, muniMap, state.microHospitalFilter);
     };
   });
+
+}
 
 function renderLeitosCity(leitos, pop, beneficiariosMH) {
   if (!leitos || !leitos.hospitais) return;
