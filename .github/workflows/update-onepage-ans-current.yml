@@ -100,20 +100,20 @@ jobs:
           console.log(`previous_year=${previousYear}`);
           NODE
 
-      - name: Extrair competência candidata RS e SC
+      - name: Extrair competência candidata para UFs suportadas
         if: steps.competence.outputs.needs_update == 'true'
         run: |
-          node scripts/gerar_ans_uf.js RS SC ${{ steps.competence.outputs.official }} --overwrite
+          node scripts/gerar_ans_uf.js RS SC MG PR PB GO ${{ steps.competence.outputs.official }} --overwrite
 
       - name: Garantir mês anterior para comparação
         if: steps.competence.outputs.needs_update == 'true'
         run: |
-          node scripts/gerar_ans_uf.js RS SC ${{ steps.reference.outputs.previous_month }} || true
+          node scripts/gerar_ans_uf.js RS SC MG PR PB GO ${{ steps.reference.outputs.previous_month }} || true
 
       - name: Garantir mesmo mês do ano anterior
         if: steps.competence.outputs.needs_update == 'true'
         run: |
-          node scripts/gerar_ans_uf.js RS SC ${{ steps.reference.outputs.previous_year }} || true
+          node scripts/gerar_ans_uf.js RS SC MG PR PB GO ${{ steps.reference.outputs.previous_year }} || true
 
       - name: Executar release gate automático
         if: steps.competence.outputs.needs_update == 'true'
@@ -121,7 +121,7 @@ jobs:
           node scripts/ans/validate-candidate.js \
             --candidate=${{ steps.competence.outputs.official }} \
             --approved=${{ steps.competence.outputs.approved }} \
-            --ufs=RS,SC
+            --ufs=RS,SC,MG,PR,PB,GO
 
       - name: Revalidar aplicação candidata
         if: steps.competence.outputs.needs_update == 'true'
@@ -162,7 +162,7 @@ jobs:
           if [[ "$STATUS" == "blocked" ]]; then
             TITLE="[BLOQUEADO] One Page · ANS ${CANDIDATE}"
           fi
-          BODY="Competência candidata **${CANDIDATE}** preparada automaticamente para o One Page.\n\nProdução permanece em **${APPROVED}** até aprovação explícita.\n\nValidação automática: **${VALIDATION}**.\n\nA candidata contém RS e SC e não altera a produção enquanto este PR não for promovido pelo workflow de aprovação."
+          BODY="Competência candidata **${CANDIDATE}** preparada automaticamente para o One Page.\n\nProdução permanece em **${APPROVED}** até aprovação explícita.\n\nValidação automática: **${VALIDATION}**.\n\nA candidata contém RS, SC, MG, PR, PB e GO e não altera a produção enquanto este PR não for promovido pelo workflow de aprovação."
           PR_URL="$(gh pr list --head onepage-ans-candidate --base main --state open --json url --jq '.[0].url // empty')"
           if [[ -z "$PR_URL" ]]; then
             PR_URL="$(gh pr create --head onepage-ans-candidate --base main --title "$TITLE" --body "$BODY")"

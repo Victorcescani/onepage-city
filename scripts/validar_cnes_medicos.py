@@ -11,7 +11,7 @@ def validate(path, uf):
     assert data['identifier'] == 'CNS_PROF'
     assert data['source_file'] == f"PF{uf}{data['comp'][2:]}.DBC"
     assert data['cities']
-    prefix = {'RS': '43', 'SC': '42'}[uf]
+    prefix = {'RS': '43', 'SC': '42', 'MG': '31', 'PR': '41', 'PB': '25', 'GO': '52'}[uf]
     for code, city in data['cities'].items():
         assert re.fullmatch(prefix + r'\d{4}', code)
         total = city['total']
@@ -26,10 +26,13 @@ def validate(path, uf):
 
 
 if __name__ == '__main__':
-    snapshots = [validate(f'data/cnes_medicos_{uf}.json', uf) for uf in ('RS', 'SC')]
-    assert snapshots[0]['comp'] == snapshots[1]['comp'], 'Competências RS/SC diferentes'
+    ufs = ('RS', 'SC', 'MG', 'PR', 'PB', 'GO')
+    snapshots = [validate(f'data/cnes_medicos_{uf}.json', uf) for uf in ufs]
+    competences = {data['comp'] for data in snapshots}
+    assert len(competences) == 1, f'Competências diferentes entre UFs: {sorted(competences)}'
     for data in snapshots:
         print(data['uf'], data['comp'], len(data['cities']), 'municípios: OK')
+    rs = next(data for data in snapshots if data['uf'] == 'RS')
     for code in ('431680', '430510', '431490'):
-        city = snapshots[0]['cities'][code]
+        city = rs['cities'][code]
         print(code, 'únicos:', city['total'], 'soma CBO (não aditiva):', sum(r['medicos'] for r in city['especialidades']))

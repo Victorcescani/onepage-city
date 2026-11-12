@@ -19,7 +19,8 @@ def git(*args, cwd=None):
 root = Path.cwd()
 branch = os.environ['GITHUB_REF_NAME']
 git('check-ref-format', '--branch', branch)
-files = [f'data/cnes_medicos_{uf}.json' for uf in ('RS', 'SC')]
+ufs = ('RS', 'SC', 'MG', 'PR', 'PB', 'GO')
+files = [f'data/cnes_medicos_{uf}.json' for uf in ufs]
 generator = 'scripts/gerar_cnes_medicos.R'
 source_blob = git('rev-parse', f'HEAD:{generator}')
 for attempt in range(4):
@@ -31,7 +32,7 @@ for attempt in range(4):
         work = Path(temp) / 'publish'
         git('worktree', 'add', '--detach', str(work), remote)
         try:
-            for uf, name in zip(('RS', 'SC'), files):
+            for uf, name in zip(ufs, files):
                 new = validate(root / name, uf)
                 dest = work / name
                 old = json.loads(dest.read_text()) if dest.exists() else {}

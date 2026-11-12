@@ -4,7 +4,7 @@ args <- commandArgs(trailingOnly = TRUE)
 uf <- if (length(args) >= 1 && nzchar(args[1])) toupper(args[1]) else "RS"
 forced_comp <- if (length(args) >= 2 && nzchar(args[2])) args[2] else ""
 
-if (!uf %in% c("RS", "SC")) stop("UF não suportada")
+if (!uf %in% c("RS", "SC", "MG", "PR", "PB", "GO")) stop("UF não suportada")
 if (nzchar(forced_comp) && !grepl("^[0-9]{4}(0[1-9]|1[0-2])$", forced_comp)) stop("Competência inválida")
 
 if (!requireNamespace("read.dbc", quietly = TRUE)) stop("Pacote read.dbc não instalado")

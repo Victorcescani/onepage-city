@@ -1131,7 +1131,14 @@ function totalMedicosFromPayload(data) {
 const MEDICOS_STATIC_CACHE = {};
 
 function ufFromIbge(ibgeId) {
-  return ({ "43": "RS", "42": "SC" })[String(ibgeId).slice(0, 2)] || null;
+  return ({
+    "25": "PB",
+    "31": "MG",
+    "41": "PR",
+    "42": "SC",
+    "43": "RS",
+    "52": "GO",
+  })[String(ibgeId).slice(0, 2)] || null;
 }
 
 async function fetchMedicosByIbgeWithFallback(ibgeId) {

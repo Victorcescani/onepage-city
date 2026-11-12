@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       month: null,
       total: 0, mh: 0, odonto: 0,
       operadoras: [],
-      _notice: `Dados ANS para UF ${uf} ainda não foram pré-processados no servidor. No momento só RS está disponível.`,
+      _notice: `Dados ANS para UF ${uf} ainda não foram pré-processados ou aprovados para produção.`,
     });
   }
   try {

@@ -29,7 +29,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,8 +49,9 @@ jobs:
         env:
           COMP_INPUT: ${{ github.event.inputs.competencia || '' }}
         run: |
-          Rscript scripts/gerar_cnes_medicos.R "RS" "$COMP_INPUT"
-          Rscript scripts/gerar_cnes_medicos.R "SC" "$COMP_INPUT"
+          for UF in RS SC MG PR PB GO; do
+            Rscript scripts/gerar_cnes_medicos.R "$UF" "$COMP_INPUT"
+          done
 
       - name: Validar JSON
         run: python scripts/validar_cnes_medicos.py

@@ -82,7 +82,7 @@ jobs:
           const nextApproved = {
             competence: process.env.EXPECTED,
             status: 'published',
-            ufs: candidate.ufs || ['RS', 'SC'],
+            ufs: candidate.ufs || ['RS', 'SC', 'MG', 'PR', 'PB', 'GO'],
             publishedAt: now,
             previousCompetence: approved.competence,
             source: 'onepage-ans-candidate',
